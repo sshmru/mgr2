@@ -1,0 +1,9 @@
+if type node >/dev/null 2>&1 ; then
+    sleep 0.5 && google-chrome "https://localhost:8001" --allow-insecure-localhost > /dev/null 2>&1 &
+    node app.js
+else
+    echo "No node.js detected, python fallback."
+    echo "Please install node.js for better results."
+    sleep 0.5 && google-chrome "http://localhost:8000" --use-fake-ui-for-media-stream > /dev/null 2>&1 & 
+    (cd public; python3 -m http.server)
+fi

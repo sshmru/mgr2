@@ -1,0 +1,17 @@
+{
+  "name": "mgr3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.12.3",
+    "https": "^1.0.0",
+    "socket.io": "^1.3.5"
+  }
+}

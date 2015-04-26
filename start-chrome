@@ -1,0 +1,2 @@
+#google-chrome "http://localhost:8000" --use-fake-ui-for-media-stream
+google-chrome "https://localhost:8001" --allow-insecure-localhost
