@@ -88,6 +88,15 @@ var translate = (function(dict) {
   var fitWord = function(elem, texObj) {
     var current = texObj.current;
     var modeStack = texObj.modeStack
+
+    console.log('-------------------------------------------------')
+    console.log(current.cursor)
+    console.log(current[current.cursor])
+    console.log('-------------------------------------------------')
+      if (current[current.cursor].length && current.expect) {
+        current.expect.splice(current.expect.indexOf(current.cursor), 1);
+      }
+
     if (elem.type === 'mode') {
       var result = {
         tex: elem.tex,
@@ -127,16 +136,14 @@ var translate = (function(dict) {
         parent: current
       };
 
-      //expectations array
-      elem.tex.split(' ').forEach(function(a) {
-        if (a[0] === '#') {
-          if (a[1] === '_') {
-            result[a] = [];
-            result[a].push(current[current.cursor].pop())
-          } else {
-            result.expect.push(a);
-            result[a] = []
-          }
+      //expectations array - push everything starting with # to expectations
+      elem.tex.match(/#[^\s]*/g).forEach(function(a) {
+        if (a[1] === '_') {
+          result[a] = [];
+          result[a].push(current[current.cursor].pop())
+        } else {
+          result.expect.push(a);
+          result[a] = []
         }
       });
       //pull arguments
@@ -152,12 +159,12 @@ var translate = (function(dict) {
 
     if (elem.type[0] === '#') {
       modeStack.pop();
+      //searches down the object for occurrences
       while (current && current.expect && current.expect.indexOf(elem.type) === -1) {
         texObj.current = current.parent;
         current = texObj.current;
         modeStack.pop();
       }
-      current.expect.splice(current.expect.indexOf(elem.type), 1);
       modeStack.push(elem.item);
       if (!current[elem.type]) {
         current[elem.type] = [];
