@@ -5,43 +5,81 @@ var translate = (function(dict) {
     var modeStack = texObj.modeStack.slice(0);
     //    var modeStack = context.modeStack.slice(0);
 
+    var result = prioritySearch(word) ||
+      findInMode(word, modeStack[modeStack.length - 1], modeStack) ||
+      finalSearch(word)
 
-    var findInMode = function(word, mode) {
+    return new WordItem(word, result.type, result)
+
+  };
+
+    var findInMode = function(word, mode, modeStack) {
       for (var item in mode) {
         var words = mode[item].words;
         if (words && words.indexOf(word) !== -1) {
-          console.log(word);
-          return {
-            word: word + ' ',
-            func: mode[item].func,
-            type: mode[item].type,
-            item: mode[item],
-            tex: mode[item].tex
-          };
+          return mode[item]
         }
       }
       for (var item in mode) {
         var rxp = mode[item].rxp;
         if (rxp && rxp.test(word) === true) {
-          return {
-            word: word + ' ',
-            func: mode[item].func,
-            type: mode[item].type,
-            item: mode[item],
-            tex: mode[item].tex
-          };
+          return mode[item]
         }
       }
       if (modeStack.length > 1) {
         modeStack.pop();
-        return findInMode(word, modeStack[modeStack.length - 1]);
+        return findInMode(word, modeStack[modeStack.length - 1], modeStack);
       } else {
-        return 0;
+        return null
       }
     };
 
+  var finalSearch = function(word, mode) {
+    if (dict.letters.indexOf(word) !== -1) {
+      return {
+        type: 'letter',
+        tex: word
+      }
+    }
+    var greekLetters = dict.greekLetters
+    for (var letter in greekLetters) {
+      if (greekLetters[letter].indexOf(word) !== -1) {
+        return {
+          type: 'letter',
+          tex: '{\\' + letter + '}'
+        }
+      }
+    }
+    //    if (mode === 'note') {
+    //      return new Txt(word);
+    //    }
+    return {
+      type: 'none'
+    }
+  };
 
-    return findInMode(word, modeStack[modeStack.length - 1]);
+  var prioritySearch = function(word, mode) {
+    //    if (mode === 'pause') {
+    //      if (dict.modes.pause.resume.words.indexOf(word) !== -1) {
+    //        return new Func(word, 'resume', [])
+    //      } else {
+    //        return new Nil(word)
+    //      }
+    //    }
+
+    if (!isNaN(word)) return {
+      type: 'number',
+      tex: word
+    }
+
+    //    var commands = dict.commands
+    //    for (var command in commands) {
+    //      if (commands[command].words.indexOf(word) !== -1) {
+    //        return new Func(word, commands[command].func, commands[command].args);
+    //      }
+    //    }
+
+    return null
   };
 
   function InputEnd() {
@@ -53,49 +91,32 @@ var translate = (function(dict) {
     };
   }
 
-
-  function WordItem(word, texObj) {
-    var elem = {
-      word: word + ' ',
-      tex: '',
-      type: 'none',
-      item: ''
-    };
-    if (!isNaN(word)) {
-      elem.type = 'number';
-      elem.tex = word;
-      return elem;
-    } else {
-      //might be broken number transcript
-      for (var item in dict.numbers) {
-        if (dict.numbers[item].words.indexOf(word) !== -1) {
-          elem.type = "number";
-          elem.tex = item;
-          return elem;
-        }
-      }
-
-      var dictItem = dictCheck(word, texObj);
-      if (dictItem) {
-        elem = dictItem;
-      }
+  function WordItem(word, type, obj) {
+    console.log('NEW -----------------',word,type)
+    this.tex = ''
+    this.type = type || 'none'
+    this.word = word,
+    this.item = null
+    if (type !== 'none') {
+      this.tex = obj.tex,
+      this.item = obj
     }
-
-    return elem;
+    if (type === 'text') {
+      this.tex = word
+    }
   }
-
 
   var fitWord = function(elem, texObj) {
     var current = texObj.current;
     var modeStack = texObj.modeStack
 
-    console.log('-------------------------------------------------')
-    console.log(current.cursor)
-    console.log(current[current.cursor])
-    console.log('-------------------------------------------------')
-      if (current[current.cursor].length && current.expect) {
-        current.expect.splice(current.expect.indexOf(current.cursor), 1);
-      }
+//    console.log(current.cursor)
+//    console.log('-------------------------------------------------')
+//    console.log(current[current.cursor])
+//    console.log('-------------------------------------------------')
+    if (current[current.cursor].length && current.expect) {
+      current.expect.splice(current.expect.indexOf(current.cursor), 1);
+    }
 
     if (elem.type === 'mode') {
       var result = {
@@ -121,7 +142,7 @@ var translate = (function(dict) {
     }
 
     if (['number', 'character', 'operator', 'letter', 'text'].indexOf(elem.type) !== -1) {
-      var result = elem.tex || elem.word;
+      var result = elem
       current[current.cursor].push(result);
       //fit at cursor, create new obj if needed
     }
@@ -197,6 +218,7 @@ var translate = (function(dict) {
     var extractArr = function(arr) {
       if (arr.constructor = [].constructor && arr.length > 0) {
         return arr.reduce(function(a, b) {
+          a+= ' '
           return (typeof b === 'string') ? a + b : a + extractObj(b)
         }, '')
       } else {
@@ -228,7 +250,8 @@ var translate = (function(dict) {
       if (str.indexOf('#') !== -1) {
         str = str.split(' ').map(function(a, index, arr) {
           if (a[0] === '#') {
-            if (arr[index - 1][arr[index - 1].length - 1] === '[' && arr[index + 1][0] === ']') {
+            //if (arr[index - 1][arr[index - 1].length - 1] === '[' && arr[index + 1][0] === ']') {
+            if(/\[$/.test(arr[index -1]) &&  /^\]/.test(arr[index + 1])){
               return '';
             } else {
               return '{\\text{' + a + '}}'
@@ -255,9 +278,14 @@ var translate = (function(dict) {
     var prev = arr[arr.length - 1]
     if (prev && prev.type === 'letter' && curr.type === 'number') {
       curr.tex = '_{ ' + curr.tex + ' }'
+      curr.type = 'operator'// change this later on 
       arr.push(curr);
     } else if (prev && prev.type === 'number' && curr.type === 'number') {
-      prev.tex += curr.tex
+      if(prev.tex === '0' || prev.tex === 0){
+        prev.tex += '.' + curr.tex
+      } else {
+        prev.tex += curr.tex
+      }
     } else {
       arr.push(curr);
     }
@@ -268,10 +296,13 @@ var translate = (function(dict) {
 
     var newInput = textInput.trim().split(/\s+/);
     newInput.forEach(function(word) {
-      var elem = new WordItem(word, texObj);
+      var elem = dictCheck(word, texObj);
+      var prevLength = translArr.length
       applyElem(elem, translArr)
         //file.translArr.push(elem);
-      fitWord(translArr[translArr.length - 1], texObj);
+      if(prevLength !== translArr.length){
+        fitWord(translArr[translArr.length - 1], texObj);
+      }
     });
 
     //mark input pauses

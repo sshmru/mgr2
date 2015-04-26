@@ -204,7 +204,7 @@ var dict_PL = (function() {
       },
 
       bracketBlock: {
-	tex: '{ \\left\\{ \\begin{array}{l} ## \\end{array} \\right.}',
+        tex: '{ \\left\\{ \\begin{array}{l} ## \\end{array} \\right.}',
         type: 'block',
         words: ['klamra'],
         newline: {
@@ -245,25 +245,25 @@ var dict_PL = (function() {
     },
 
     text: {
-      tex: '\n ## \n',
+      tex: '$$ \\text{ ## } $$',
       type: 'mode',
       words: ['tekstowy', 'tekst'],
 
       colon: {
         tex: ': ',
-        type: 'text',
+        type: 'operator',
         words: ['dwukropek', 'dwukropku']
       },
 
       newLine: {
-        tex: ' \n ',
-        type: 'text',
+        tex: '\\text{ ## } ',
+        type: 'block',
         words: ['enter', 'linia', 'linii']
       },
 
       comma: {
         tex: ', ',
-        type: 'text',
+        type: 'operator',
         words: ['przecinek', 'przecinku']
       },
 
@@ -297,74 +297,108 @@ var dict_PL = (function() {
     math: dict.modes.math,
     text: dict.modes.text,
 
+  };
 
-
-    showMenu: {
-      func: 'showMenu',
-      words: ['menu'],
-    },
-
-    changeMode: {
-      func: 'changeMode',
-      words: ['tryby', 'tryb'],
-    },
-
-    listFiles: {
-      func: 'lisFiles',
-      words: ['pliki', 'plików'],
-    },
-
-    newFile: {
-      func: 'newFile',
-      words: ['nowy'],
+  dict.commands = {
+    pause: {
+      func: 'pause',
+      args: [],
+      words: ['pauza', 'stop', 'przerwij']
     },
 
     save: {
       func: 'save',
-      words: ['zapisz'],
+      args: ['name'],
+      words: ['zapisz', 'save'],
     },
 
-    undo: {
-      func: 'undo',
-      words: ['cofnij'],
+    load: {
+      func: 'load',
+      args: ['name'],
+      words: ['wczytaj', 'load', 'otwórz'],
     },
 
-    redo: {
-      func: 'redo',
-      words: ['powtórz'],
+    export: {
+      func: 'export',
+      args: ['name'],
+      words: ['eksportuj', 'eksport'],
     },
 
-    find: {
-      func: 'find',
-      words: ['znajdź', 'szukaj'],
+    back: {
+      func: 'back',
+      args: [],
+      words: ['cofnij', 'wstecz', 'back', 'undo'],
     },
 
-    goTo: {
-      func: 'goTo',
-      words: ['idź', 'skocz'],
+    forward: {
+      func: 'forward',
+      args: [],
+      words: ['dalej', 'przód', 'redo'],
     },
 
-    letters: {
-      type: 'letter',
-      words: ['A', 'Ą', 'B', 'C', 'Ć', 'D', 'E', 'Ę', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'Ł', 'M', 'N', 'Ń', 'O', 'Ó', 'P', 'Q', 'R', 'S', 'Ś', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Ź', 'Ż', 'a', 'ą', 'b', 'c', 'ć', 'd', 'e', 'ę', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'ł', 'm', 'n', 'ń', 'o', 'ó', 'p', 'q', 'r', 's', 'ś', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ź', 'ż']
+    menu: {
+      func: 'showMenu',
+      args: [],
+      words: ['menu', 'many', 'help'],
     },
 
-    greekLetters: {
-      type: 'greekLetter',
-      words: ["alpha", "thetao", "tau", "beta", "vartheta", "pi", "upsilon", "gamma", "gamma", "varpi", "phi", "delta", "kappa", "rho", "varphi", "epsilon", "lambda", "varrho", "chi", "varepsilon", "mu", "sigma", "psi", "zeta", "nu", "varsigma", "omega", "eta", "xi", "Gamma", "Lambda", "Sigma", "Psi", "Delta", "Xi", "Upsilon", "Omega", "Theta", "Pi", "Phi"]
+    note: {
+      func: 'noteMode',
+      args: [],
+      words: ['notuj', 'notacji', 'notatki', 'notacja'],
     },
 
-    //stupid fix for speechrecognition being dumb (dwa -> o2)
+    math: {
+      func: 'mathMode',
+      args: [],
+      words: ['matematyka', 'matematyczny', 'obliczenia'],
+    },
   };
-  dict.numbers = {
-    "2": {
-      words: ['dwa', 'o2']
-    },
-    "3": {
-      words: ['trzeciego', 'trzech']
-    }
-  };
 
+  dict.letters = ['A', 'Ą', 'B', 'C', 'Ć', 'D', 'E', 'Ę', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'Ł', 'M', 'N', 'Ń', 'O', 'Ó', 'P', 'Q', 'R', 'S', 'Ś', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Ź', 'Ż', 'a', 'ą', 'b', 'c', 'ć', 'd', 'e', 'ę', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'ł', 'm', 'n', 'ń', 'o', 'ó', 'p', 'q', 'r', 's', 'ś', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ź', 'ż'];
+
+  dict.greekLetters = {
+    'alpha': ['alpha', 'alfa'],
+    'theta': [],
+    'tau': [],
+    'beta': [],
+    'vartheta': [],
+    'pi': [],
+    'upsilon': [],
+    'gamma': [],
+    'iota': [],
+    'varpi': [],
+    'phi': [],
+    'delta': ['delta'],
+    'kappa': ['kappa'],
+    'rho': [],
+    'varphi': [],
+    'epsilon': [],
+    'lambda': ['lambda'],
+    'varrho': [],
+    'chi': [],
+    'varepsilon': [],
+    'mu': [],
+    'sigma': [],
+    'psi': [],
+    'zeta': [],
+    'nu': [],
+    'varsigma': [],
+    'omega': [],
+    'eta': [],
+    'xi': [],
+    'Gamma': [],
+    'Lambda': [],
+    'Sigma': [],
+    'Psi': [],
+    'Delta': [],
+    'Xi': [],
+    'Upsilon': [],
+    'Omega': [],
+    'Theta': [],
+    'Pi': [],
+    'Phi': []
+  };
 
 
 
