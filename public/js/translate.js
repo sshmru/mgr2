@@ -1,8 +1,8 @@
 var translate = (function(dict) {
 
 
-  var dictCheck = function(word, context, file) {
-    var modeStack = file.attributes.modeStack.slice(0);
+  var dictCheck = function(word, texObj) {
+    var modeStack = texObj.modeStack.slice(0);
     //    var modeStack = context.modeStack.slice(0);
 
 
@@ -44,24 +44,24 @@ var translate = (function(dict) {
     return findInMode(word, modeStack[modeStack.length - 1]);
   };
 
-  function EndInput() {
+  function InputEnd() {
     return {
       word: '',
       tex: '',
-      type: 'endInput',
+      type: 'InputEnd',
       item: ''
     };
   }
 
 
-  function WordItem(word, context, file) {
+  function WordItem(word, texObj) {
     var elem = {
       word: word + ' ',
       tex: '',
       type: 'none',
       item: ''
     };
-    if (!isNaN(parseFloat(word))) {
+    if (!isNaN(word)) {
       elem.type = 'number';
       elem.tex = word;
       return elem;
@@ -75,7 +75,7 @@ var translate = (function(dict) {
         }
       }
 
-      var dictItem = dictCheck(word, context, file);
+      var dictItem = dictCheck(word, texObj);
       if (dictItem) {
         elem = dictItem;
       }
@@ -85,11 +85,10 @@ var translate = (function(dict) {
   }
 
 
-  var fitWord = function(elem, translObj, file) {
-    var current = translObj.current;
-
+  var fitWord = function(elem, texObj) {
+    var current = texObj.current;
+    var modeStack = texObj.modeStack
     if (elem.type === 'mode') {
-
       var result = {
         tex: elem.tex,
         mode: elem.item,
@@ -98,25 +97,26 @@ var translate = (function(dict) {
         cursor: 'data'
       };
 
-      translObj.data.push(result);
-      translObj.current = result;
+      texObj.data.push(result);
+      texObj.current = result;
 
       //clear stack and add mode dictionary
-      var modeStack = [dict.normal]
-      file.set('modeStack', modeStack) 
+      modeStack = [dict.normal]
+      texObj.modeStack = modeStack
       modeStack.push(elem.item);
-
-
       //close previous, push to main obj array, set cursor, update stack
     }
+
     if (elem.func) {
       //if args, create temp obj and wait for args, if complete, call function
     }
+
     if (['number', 'character', 'operator', 'letter', 'text'].indexOf(elem.type) !== -1) {
       var result = elem.tex || elem.word;
       current[current.cursor].push(result);
       //fit at cursor, create new obj if needed
     }
+
     if (elem.type === 'block') {
       var result = {
         tex: elem.tex,
@@ -130,10 +130,10 @@ var translate = (function(dict) {
       //expectations array
       elem.tex.split(' ').forEach(function(a) {
         if (a[0] === '#') {
-          if(a[1] === '_'){
+          if (a[1] === '_') {
             result[a] = [];
             result[a].push(current[current.cursor].pop())
-          }else{
+          } else {
             result.expect.push(a);
             result[a] = []
           }
@@ -142,37 +142,33 @@ var translate = (function(dict) {
       //pull arguments
 
       current[current.cursor].push(result);
-      var modeStack = file.attributes.modeStack
       modeStack.push(elem.item);
       if (elem.item.cursor) {
         modeStack.push(elem.item.cursor)
       }
-      translObj.current = result;
-
+      texObj.current = result;
       //close previous, push to main obj array, set cursor, update stack
     }
-    if (elem.type[0] === '#') {
-      var modeStack = file.attributes.modeStack
-        modeStack.pop();
-        while (current && current.expect && current.expect.indexOf(elem.type) === -1) {
-          translObj.current = current.parent;
-          current = translObj.current;
-          modeStack.pop();
-        }
-        current.expect.splice(current.expect.indexOf(elem.type), 1);
-        modeStack.push(elem.item);
-        if (!current[elem.type]) {
-          current[elem.type] = [];
-        }
-        current.cursor = elem.type;
 
+    if (elem.type[0] === '#') {
+      modeStack.pop();
+      while (current && current.expect && current.expect.indexOf(elem.type) === -1) {
+        texObj.current = current.parent;
+        current = texObj.current;
+        modeStack.pop();
+      }
+      current.expect.splice(current.expect.indexOf(elem.type), 1);
+      modeStack.push(elem.item);
+      if (!current[elem.type]) {
+        current[elem.type] = [];
+      }
+      current.cursor = elem.type;
       //fit nearest block of given name, close all on its way
     }
 
     if (elem.type === 'end') {
-      var modeStack = file.attributes.modeStack
-      translObj.current = current.parent;
-      current = translObj.current;
+      texObj.current = current.parent;
+      current = texObj.current;
       modeStack.pop();
       //move cursor down to parent
     }
@@ -260,34 +256,28 @@ var translate = (function(dict) {
     }
   }
 
-  var translate = function(file, textInput) {
-    var translArr = file.attributes.translArr
-    var translObj = file.attributes.translObj
-    if (translArr.length === 0) {
-      translObj.current =translObj;
-    }
+  var translate = function(texObj, textInput) {
+    var translArr = texObj.translArr
 
-
-    var newInput = textInput.trim().split(' ');
+    var newInput = textInput.trim().split(/\s+/);
     newInput.forEach(function(word) {
-      var elem = new WordItem(word,translObj, file);
-      applyElem(elem,translArr)
+      var elem = new WordItem(word, texObj);
+      applyElem(elem, translArr)
         //file.translArr.push(elem);
-      fitWord(translArr[translArr.length - 1],translObj, file);
+      fitWord(translArr[translArr.length - 1], texObj);
     });
 
-
     //mark input pauses
-    translArr.push(new EndInput());
+    translArr.push(new InputEnd());
 
     console.log('translateObj: ');
-    console.log(translObj);
+    console.log(texObj);
     //    console.log('translateArr');
     //    console.log(file.translArr);
-    var text = extractTex(translObj)
+    var text = extractTex(texObj)
     console.log('result text: ')
     console.log(text)
-    translObj['text'] = text
+    texObj['text'] = text
 
   };
 

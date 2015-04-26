@@ -2,9 +2,11 @@ var dict = dict_PL
 var TexRoot = function() {
   this.mode = dict.normal
   this.tex = '##'
-  this.current = {}
+  this.current = this
   this.data = []
   this.cursor = 'data'
+  this.modeStack = [dict.normal]
+  this.translArr = []
   this.input = function(input) {
     this.tex += input
   }
@@ -17,13 +19,11 @@ var Editor = Backbone.Model.extend({
   defaults: {
     transcr: '',
     currInput: '',
-    translArr: [],
     tex: '',
     mode: 'math',
-    modeStack: [dict.normal],
   },
   initialize: function() {
-    this.set('translObj', new TexRoot())
+    this.set('texObj', new TexRoot())
 
     this.on('change', function() {
       console.log('changed')
@@ -60,11 +60,14 @@ var Editor = Backbone.Model.extend({
       }).join(' ');
     this.set('currInput', textInput);
     this.set('transcr', (this.get('transcr') ? this.get('transcr') + ' ' + textInput : textInput));
-    translate(this, textInput);
+    translate(this.attributes.texObj, textInput);
     console.log(this.attributes);
     console.timeEnd('search word');
-    this.set('tex', this.attributes.translObj.toTex());
+    this.set('tex', this.getTex());
     //this.historyPush(this); history only if word had effect
+  },
+  getTex: function(){
+    return this.attributes.texObj.toTex()
   },
 
   save: function(name) {
