@@ -26,9 +26,9 @@ var Editor = Backbone.Model.extend({
     var self = this
     this.set('texObj', new TexRoot())
 
-    this.on('change', function() {
-      console.log('changed')
-    })
+//    this.on('change', function() {
+//      console.log('changed')
+//    })
 
     var history = [];
 

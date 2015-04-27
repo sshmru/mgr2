@@ -43,34 +43,28 @@ var dict_PL = (function() {
 
       greater: {
         type: 'character',
+        tex: '>',
         words: ['>', 'większe'],
         equal: {
-          tex: '//geq',
-          type: 'character',
+          tex: '\\geq',
+          type: 'override',
           words: ['=', 'równe', 'równa']
-        },
-        default: {
-          tex: '>',
-          type: 'character',
         }
       },
 
       lesser: {
+        tex: '>',
         type: 'character',
         words: ['<', 'mniejsze'],
         equal: {
           tex: '\\leq',
-          type: 'character',
+          type: 'override',
           words: ['=', 'równe', 'równa']
         },
-        default: {
-          tex: '>',
-          type: 'character',
-        }
       },
 
       percent: {
-        tex: '%',
+        tex: '\\%',
         type: 'character',
         words: ['%', 'procent', 'procentów']
       },

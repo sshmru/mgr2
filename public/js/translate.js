@@ -144,7 +144,15 @@ var translate = (function(dict) {
     if (elem.func) {
       //if args, create temp obj and wait for args, if complete, call function
     }
+
+    if (elem.type === 'override') {
+      var result = elem
+      modeStack.push(elem.item);
+      //fit at cursor, create new obj if needed
+    }
+
     if (elem.type === 'modifier') {
+      var result = elem
       modeStack.push(elem.item);
       //fit at cursor, create new obj if needed
     }
@@ -152,6 +160,9 @@ var translate = (function(dict) {
     if (['number', 'character', 'operator', 'letter', 'text'].indexOf(elem.type) !== -1) {
       var result = elem
       current[current.cursor].push(result);
+      if (elem.item) {
+        modeStack.push(elem.item);
+      }
       //fit at cursor, create new obj if needed
     }
 
@@ -213,7 +224,7 @@ var translate = (function(dict) {
     }
 
     if (elem.type === 'end') {
-      if(current.parent){
+      if (current.parent) {
         texObj.current = current.parent;
         current = texObj.current;
       }
@@ -301,6 +312,7 @@ var translate = (function(dict) {
       curr.type = 'operator' // change this later on 
       arr.push(curr);
     } else if (prev && prev.type === 'number' && curr.type === 'number') {
+      //make fractions from 0 34 -> 0.34
       if (prev.tex === '0' || prev.tex === 0) {
         prev.tex += '.' + curr.tex
         prev.word += ' ' + curr.wrod
@@ -308,6 +320,10 @@ var translate = (function(dict) {
         prev.tex += curr.tex
         prev.word += ' ' + curr.wrod
       }
+    } else if (prev && curr.type === 'override') {
+      // lesser -> equal, '<' -> \\leq
+      prev.tex = curr.tex
+      prev.word += ' ' + curr.wrod
     } else {
       arr.push(curr);
     }
@@ -321,7 +337,7 @@ var translate = (function(dict) {
       var elem = dictCheck(word, texObj);
       var prevLength = translArr.length
       applyElem(elem, translArr)
-      //fit only if array length increased
+        //fit only if array length increased
       if (prevLength !== translArr.length) {
         fitWord(translArr[translArr.length - 1], texObj);
       }
