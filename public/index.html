@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title></title>
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
 </head>
+
 <body>
   <div id="menu"></div>
   <div id="editor"></div>
@@ -29,11 +32,12 @@
       var socket = io.connect(window.location.href)
       socket.on('data', function(data) {
         ed.input(data)
-//        var p = document.createElement('p')
-//        p.innerHTML = data
-//        document.body.appendChild(p)
+          //        var p = document.createElement('p')
+          //        p.innerHTML = data
+          //        document.body.appendChild(p)
       })
     }
   </script>
 </body>
+
 </html>

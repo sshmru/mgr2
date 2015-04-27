@@ -19,6 +19,7 @@ var speech = (function() {
 
   speech.transcribe = function(ev) {
 //    console.log(ev)
+    //accepts string or event
     var result = (typeof ev === 'string') ? ev : ev.results[ev.results.length - 1][0].transcript;
     file.input(result);
   };
@@ -40,7 +41,7 @@ var speech = (function() {
         recog.onend = function() {
           recog.running = false;
           speech.resumeInput();
-          console.log('recognition ended');
+//          console.log('recognition ended');
         };
       } else {
         console.log('plese use https protocol for better results');
@@ -48,14 +49,14 @@ var speech = (function() {
         recog.onend = function() {
           recog.running = false;
           speech.resumeInput();
-          console.log('recognition ended');
+//          console.log('recognition ended');
         };
       }
       recog.maxAlternatives = 3;
       recog.lang = dict.lang;
       recog.onstart = function() {
         recog.running = true;
-        console.log('recognition started');
+//        console.log('recognition started');
       };
       recog.onsoundstart = function() {
         console.time('speech input')// start counting speech recog time
@@ -64,9 +65,8 @@ var speech = (function() {
         console.timeEnd('speech input')
         console.time('search word')// time result for speech recog
         speech.transcribe(ev);
-        console.log('received input');
+//        console.log('received input');
       };
-      recog.start();
     } else {
 
     }

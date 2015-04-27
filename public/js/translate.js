@@ -113,6 +113,7 @@ var translate = (function(dict) {
   }
 
   var fitWord = function(elem, texObj) {
+    console.log(elem)
     var current = texObj.current;
     var modeStack = texObj.modeStack
 
@@ -142,6 +143,10 @@ var translate = (function(dict) {
 
     if (elem.func) {
       //if args, create temp obj and wait for args, if complete, call function
+    }
+    if (elem.type === 'modifier') {
+      modeStack.push(elem.item);
+      //fit at cursor, create new obj if needed
     }
 
     if (['number', 'character', 'operator', 'letter', 'text'].indexOf(elem.type) !== -1) {
@@ -184,7 +189,6 @@ var translate = (function(dict) {
     if (elem.type[0] === '#') {
       modeStack.pop();
       //searches down the object for occurrences
-      console.log(current, '------------------------------')
       var saveCurrent = current
       var saveModeStack = modeStack.slice(0)
       while (current && current.expect && current.expect.indexOf(elem.type) === -1) {
@@ -201,7 +205,6 @@ var translate = (function(dict) {
       }
 
       modeStack.push(elem.item);
-      console.log(current, '------------------------------')
       if (!current[elem.type]) {
         current[elem.type] = [];
       }
@@ -300,8 +303,10 @@ var translate = (function(dict) {
     } else if (prev && prev.type === 'number' && curr.type === 'number') {
       if (prev.tex === '0' || prev.tex === 0) {
         prev.tex += '.' + curr.tex
+        prev.word += ' ' + curr.wrod
       } else {
         prev.tex += curr.tex
+        prev.word += ' ' + curr.wrod
       }
     } else {
       arr.push(curr);
@@ -316,7 +321,7 @@ var translate = (function(dict) {
       var elem = dictCheck(word, texObj);
       var prevLength = translArr.length
       applyElem(elem, translArr)
-        //file.translArr.push(elem);
+      //fit only if array length increased
       if (prevLength !== translArr.length) {
         fitWord(translArr[translArr.length - 1], texObj);
       }
@@ -329,10 +334,10 @@ var translate = (function(dict) {
     console.log(texObj);
     //    console.log('translateArr');
     //    console.log(file.translArr);
-    var text = extractTex(texObj)
+    var tex = extractTex(texObj)
     console.log('result text: ')
-    console.log(text)
-    texObj['text'] = text
+    console.log(tex)
+    texObj['text'] = tex
 
   };
 

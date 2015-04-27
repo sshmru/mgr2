@@ -33,6 +33,7 @@ var dict_PL = (function() {
       not: {
         tex: '',
         words: ['nie'],
+        type: 'modifier',
         neq: {
           tex: '\\neq',
           type: 'character',
@@ -319,7 +320,7 @@ var dict_PL = (function() {
     },
   };
 
-  dict.endBlock = ['koniec', 'escape', 'esc']
+  dict.endBlock = ['koniec', 'escape', 'esc', '#BREAK#']
 
   dict.letters = ['A', 'Ą', 'B', 'C', 'Ć', 'D', 'E', 'Ę', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'Ł', 'M', 'N', 'Ń', 'O', 'Ó', 'P', 'Q', 'R', 'S', 'Ś', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Ź', 'Ż', 'a', 'ą', 'b', 'c', 'ć', 'd', 'e', 'ę', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'ł', 'm', 'n', 'ń', 'o', 'ó', 'p', 'q', 'r', 's', 'ś', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ź', 'ż'];
 

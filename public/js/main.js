@@ -1,4 +1,4 @@
-var dict = dict_PL
+var dict = dict_PL //jesus this is awful, need 2 remove it asap
 var TexRoot = function() {
   this.mode = dict.normal
   this.tex = '##'
@@ -23,6 +23,7 @@ var Editor = Backbone.Model.extend({
     mode: 'math',
   },
   initialize: function() {
+    var self = this
     this.set('texObj', new TexRoot())
 
     this.on('change', function() {
@@ -50,9 +51,41 @@ var Editor = Backbone.Model.extend({
     };
 
     this.historyPush(this);
+
+    this.idleTimer.setCB(function() {
+      self.input('#TIMEOUT#')
+    }, 20000);
+
   },
+  idleTimer: (function() {
+    var timer = null
+    var cv = function() {}
+    var delay = 5000
+    var idleTimer = {
+      start: function() {
+        timer = window.setTimeout(function() {
+          cb()
+        }, delay)
+      },
+      stop: function() {
+        window.clearTimeout(timer)
+      },
+      setCB: function(newCB, newDelay) {
+        cb = newCB || cb
+        delay = newDelay || delay
+      },
+      reset: function(delay) {
+        idleTimer.stop()
+        idleTimer.start(delay, cb)
+      }
+    }
+    return idleTimer
+  })(),
 
   input: function(textInput) {
+
+    if(textInput !== '#TIMEOUT#') this.idleTimer.reset()
+
     console.log(textInput)
     textInput = textInput.split(' ').map(
       function(a) {
@@ -66,7 +99,7 @@ var Editor = Backbone.Model.extend({
     this.set('tex', this.getTex());
     //this.historyPush(this); history only if word had effect
   },
-  getTex: function(){
+  getTex: function() {
     return this.attributes.texObj.toTex()
   },
 
@@ -191,7 +224,7 @@ var EditorView = Backbone.View.extend({
 var InputLine = Backbone.View.extend({
   initialize: function() {
     this.model.on('change', function(data) {
-      this.$el.find('input').val(data.attributes.currInput)
+        this.$el.find('input').val(data.attributes.currInput)
     }, this);
   },
   events: {
@@ -204,7 +237,7 @@ var InputLine = Backbone.View.extend({
     },
     'focusin input': function(ev) {
       this.$el.find('input').val('')
-    }
+    },
   },
   render: function() {
     this.$el.html(
@@ -235,6 +268,14 @@ var currIn = new InputLine({
 });
 
 $(function() {
+
+  // this one shouldnt be there
+  $(window).on('keydown', function(ev) {
+    if (ev.keyCode === 27) {
+      console.log('break, esc key pressed')
+      ed.input('#BREAK#')
+    }
+  })
 
   $('#menu').html(menuv.render().el);
 
