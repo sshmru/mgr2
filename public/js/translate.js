@@ -76,6 +76,7 @@ var translate = (function(dict) {
       console.log('END BLOCK HIT')
       return {
         type: 'end',
+        tex: ''
       }
     }
 
@@ -146,6 +147,7 @@ var translate = (function(dict) {
     }
 
     if (elem.type === 'override') {
+      console.log('-----------------------',elem)
       var result = elem
       modeStack.push(elem.item);
       //fit at cursor, create new obj if needed
@@ -167,14 +169,19 @@ var translate = (function(dict) {
     }
 
     if (elem.type === 'block') {
-      var result = {
-        tex: elem.tex,
-        mode: elem.item,
-        data: [],
-        expect: [],
-        cursor: elem.item.cursor || 'data',
-        parent: current
-      };
+//      var result = {
+//        tex: elem.tex,
+//        mode: elem.item,
+//        data: [],
+//        expect: [],
+//        cursor: elem.item.cursor || 'data',
+//        parent: current
+//      };
+      var result = elem;
+        elem.data= [],
+        elem.expect= [],
+        elem.cursor = elem.item.cursor || 'data',
+        elem.parent = current
 
       //expectations array - push everything starting with # to expectations
       elem.tex.match(/#[^\s]*/g).forEach(function(a) {
@@ -247,7 +254,9 @@ var translate = (function(dict) {
     atCursor.push('\\heartsuit')
 
     var extractArr = function(arr) {
-      if (arr.constructor = [].constructor && arr.length > 0) {
+      console.log('-----------------------------------')
+      console.log(arr)
+      if (arr.constructor === [].constructor && arr.length > 0) {
         return arr.reduce(function(a, b) {
           a += ' '
           return (typeof b === 'string') ? a + b : a + extractObj(b)
@@ -321,9 +330,9 @@ var translate = (function(dict) {
         prev.word += ' ' + curr.wrod
       }
     } else if (prev && curr.type === 'override') {
-      // lesser -> equal, '<' -> \\leq
+      // lesser equal, '<' -> \\leq
       prev.tex = curr.tex
-      prev.word += ' ' + curr.wrod
+      prev.word += ' ' + curr.word
     } else {
       arr.push(curr);
     }

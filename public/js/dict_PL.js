@@ -138,12 +138,23 @@ var dict_PL = (function() {
       },
 
       brace: {
-        tex: '( ## )',
+        tex: '\\left( ## \\right)',
         type: 'block',
-        words: ['(', 'nawias', 'nawiasie', 'nawiasie'],
-        end: {
-          type: 'end',
-          words: ['koniec', 'za']
+        words: ['(', 'nawias', 'nawiasie', 'nawiasie', 'nawiasy'],
+        square: {
+          tex: '\\left[ ## \\right]',
+          type: 'override',
+          words: ['[', 'kwadratowy', 'kwadratowym', 'kwadratowe']
+        },
+        curly: {
+          tex: '\\left{ ## \\right}',
+          type: 'override',
+          words: ['{', 'klamrowy', 'klamrowym', 'klamrowe']
+        },
+        curly: {
+          tex: '\\langle ## \\rangle',
+          type: 'override',
+          words: ['ostre']
         }
       },
 

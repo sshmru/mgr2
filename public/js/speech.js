@@ -67,8 +67,9 @@ var speech = (function() {
         speech.transcribe(ev);
 //        console.log('received input');
       };
+    recog.start();
     } else {
-
+      
     }
   };
   return speech;

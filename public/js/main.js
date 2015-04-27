@@ -64,7 +64,8 @@ var Editor = Backbone.Model.extend({
     var idleTimer = {
       start: function() {
         timer = window.setTimeout(function() {
-          cb()
+    //      cb()
+          //      annoyign during tests 
         }, delay)
       },
       stop: function() {
