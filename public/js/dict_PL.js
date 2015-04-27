@@ -82,10 +82,6 @@ var dict_PL = (function() {
           tex: '',
           words: ['przez', 'na']
         },
-        end: {
-          type: 'end',
-          words: ['koniec']
-        }
       },
 
       multiplication: {
@@ -106,23 +102,11 @@ var dict_PL = (function() {
         denominator: {
           type: '#denominator',
           words: ['mianownik', 'mianowniku'],
-          end: {
-            type: 'end',
-            words: ['koniec']
-          }
         },
         numerator: {
           type: '#numerator',
           words: ['licznik', 'liczniku'],
-          end: {
-            type: 'end',
-            words: ['koniec']
-          }
         },
-        end: {
-          type: 'end',
-          words: ['koniec']
-        }
       },
 
       sqrt: {
@@ -138,30 +122,18 @@ var dict_PL = (function() {
           type: '#data',
           words: ['z', 'Z'],
         },
-        end: {
-          type: 'end',
-          words: ['koniec']
-        }
       },
 
       index: {
         tex: '_{ ## }',
         type: 'block',
         words: ['indeks', 'indeksem'],
-        end: {
-          type: 'end',
-          words: ['koniec']
-        }
       },
 
       power: {
         tex: '^{ ## }',
         type: 'block',
         words: ['potęga', 'potęgi'],
-        end: {
-          type: 'end',
-          words: ['koniec']
-        }
       },
 
       square: {
@@ -197,10 +169,6 @@ var dict_PL = (function() {
           type: '#where',
           words: ['gdzie', 'takich']
         },
-        end: {
-          type: 'end',
-          words: ['koniec']
-        }
       },
 
       bracketBlock: {
@@ -212,10 +180,6 @@ var dict_PL = (function() {
           type: 'character',
           words: ['dalej', 'nizej']
         },
-        end: {
-          type: 'end',
-          words: ['koniec']
-        }
       },
 
       logic: {
@@ -354,6 +318,8 @@ var dict_PL = (function() {
       words: ['matematyka', 'matematyczny', 'obliczenia'],
     },
   };
+
+  dict.endBlock = ['koniec', 'escape', 'esc']
 
   dict.letters = ['A', 'Ą', 'B', 'C', 'Ć', 'D', 'E', 'Ę', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'Ł', 'M', 'N', 'Ń', 'O', 'Ó', 'P', 'Q', 'R', 'S', 'Ś', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Ź', 'Ż', 'a', 'ą', 'b', 'c', 'ć', 'd', 'e', 'ę', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'ł', 'm', 'n', 'ń', 'o', 'ó', 'p', 'q', 'r', 's', 'ś', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ź', 'ż'];
 

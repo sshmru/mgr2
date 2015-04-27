@@ -72,6 +72,13 @@ var translate = (function(dict) {
       tex: word
     }
 
+    if (dict.endBlock.indexOf(word) !== -1) {
+      console.log('END BLOCK HIT')
+      return {
+        type: 'end',
+      }
+    }
+
     //    var commands = dict.commands
     //    for (var command in commands) {
     //      if (commands[command].words.indexOf(word) !== -1) {
@@ -203,8 +210,10 @@ var translate = (function(dict) {
     }
 
     if (elem.type === 'end') {
-      texObj.current = current.parent;
-      current = texObj.current;
+      if(current.parent){
+        texObj.current = current.parent;
+        current = texObj.current;
+      }
       modeStack.pop();
       //move cursor down to parent
     }
