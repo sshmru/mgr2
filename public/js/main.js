@@ -7,9 +7,6 @@ var TexRoot = function() {
   this.cursor = 'data'
   this.modeStack = [dict.normal]
   this.translArr = []
-  this.input = function(input) {
-    this.tex += input
-  }
   this.toTex = function() {
     return this.text
   }
@@ -26,28 +23,49 @@ var Editor = Backbone.Model.extend({
     var self = this
     this.set('texObj', new TexRoot())
 
-//    this.on('change', function() {
-//      console.log('changed')
-//    })
+    //    this.on('change', function() {
+    //      console.log('changed')
+    //    })
 
     var history = [];
 
     var position = -1;
 
+    //history coudl have been more efficient by just slicing proper part of array to apply
     this.historyPush = function(data) {
-      history[++position] = data.toJSON();
+      var json = this.toJSON()
+      history[++position] = {
+        editor: {
+          transcr: json.transcr,
+          mode: json.mode
+        },
+        arr: data.attributes.texObj.translArr.slice(0)
+      };
       history.length = position + 1;
       console.log('history PUSH', history, position);
     };
 
     this.back = function() {
       console.log('history BACK', history, position);
-      if (position >= 0) this.set(history[--position]);
+      if (position >= 0){
+        var obj =history[--position]
+        this.set(obj.editor);
+        var to = new TexRoot()
+        this.set('texObj',to)
+
+        this.parseArr(obj.arr)
+      }
     };
 
     this.forward = function() {
       console.log('history FORWARD', history, position);
-      if (position < history.length - 1) this.set(history[++position]);
+      if (position < history.length - 1){
+        var obj = history[++position]
+        this.set(obj.editor);
+        var to = new TexRoot()
+        this.set('texObj',to)
+        this.parseArr(obj.arr);
+      }
     };
 
     this.historyPush(this);
@@ -64,7 +82,7 @@ var Editor = Backbone.Model.extend({
     var idleTimer = {
       start: function() {
         timer = window.setTimeout(function() {
-    //      cb()
+          //      cb()
           //      annoyign during tests 
         }, delay)
       },
@@ -85,7 +103,7 @@ var Editor = Backbone.Model.extend({
 
   input: function(textInput) {
 
-    if(textInput !== '#TIMEOUT#') this.idleTimer.reset()
+    if (textInput !== '#TIMEOUT#') this.idleTimer.reset()
 
     console.log(textInput)
     textInput = textInput.split(' ').map(
@@ -94,11 +112,16 @@ var Editor = Backbone.Model.extend({
       }).join(' ');
     this.set('currInput', textInput);
     this.set('transcr', (this.get('transcr') ? this.get('transcr') + ' ' + textInput : textInput));
-    translate(this.attributes.texObj, textInput);
+    translate.input(this.attributes.texObj, textInput);
     console.log(this.attributes);
     console.timeEnd('search word');
     this.set('tex', this.getTex());
-    //this.historyPush(this); history only if word had effect
+
+    this.historyPush(this);// history only if word had effect
+  },
+  parseArr: function(arr){
+    translate.arrToObj(this.attributes.texObj, arr);
+    this.set('tex', this.getTex());
   },
   getTex: function() {
     return this.attributes.texObj.toTex()
@@ -225,7 +248,7 @@ var EditorView = Backbone.View.extend({
 var InputLine = Backbone.View.extend({
   initialize: function() {
     this.model.on('change', function(data) {
-        this.$el.find('input').val(data.attributes.currInput)
+      this.$el.find('input').val(data.attributes.currInput)
     }, this);
   },
   events: {

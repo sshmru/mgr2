@@ -91,12 +91,10 @@ var translate = (function(dict) {
   };
 
   function InputEnd() {
-    return {
-      word: '',
-      tex: '',
-      type: 'InputEnd',
-      item: ''
-    };
+      this.word= ''
+      this.tex= ''
+      this.type= 'InputEnd'
+      this.item= ''
   }
 
   function WordItem(word, type, obj) {
@@ -147,7 +145,6 @@ var translate = (function(dict) {
     }
 
     if (elem.type === 'override') {
-      console.log('-----------------------',elem)
       var result = elem
       modeStack.push(elem.item);
       //fit at cursor, create new obj if needed
@@ -169,17 +166,17 @@ var translate = (function(dict) {
     }
 
     if (elem.type === 'block') {
-//      var result = {
-//        tex: elem.tex,
-//        mode: elem.item,
-//        data: [],
-//        expect: [],
-//        cursor: elem.item.cursor || 'data',
-//        parent: current
-//      };
+      //      var result = {
+      //        tex: elem.tex,
+      //        mode: elem.item,
+      //        data: [],
+      //        expect: [],
+      //        cursor: elem.item.cursor || 'data',
+      //        parent: current
+      //      };
       var result = elem;
-        elem.data= [],
-        elem.expect= [],
+      elem.data = [],
+        elem.expect = [],
         elem.cursor = elem.item.cursor || 'data',
         elem.parent = current
 
@@ -197,9 +194,10 @@ var translate = (function(dict) {
 
       current[current.cursor].push(result);
       modeStack.push(elem.item);
-      if (elem.item.cursor) {
-        modeStack.push(elem.item.cursor)
-      }
+      //      IS THIS EVEN NEEDED ? 
+      //      if (elem.item.cursor) {
+      //        modeStack.push(elem.item.cursor)
+      //      }
       texObj.current = result;
       //close previous, push to main obj array, set cursor, update stack
     }
@@ -254,8 +252,6 @@ var translate = (function(dict) {
     atCursor.push('\\heartsuit')
 
     var extractArr = function(arr) {
-      console.log('-----------------------------------')
-      console.log(arr)
       if (arr.constructor === [].constructor && arr.length > 0) {
         return arr.reduce(function(a, b) {
           a += ' '
@@ -338,6 +334,16 @@ var translate = (function(dict) {
     }
   }
 
+  var arrToObj = function(texObj, arr){
+  
+    while(arr.length){
+      fitWord(arr.shift(), texObj)
+    }
+
+    var tex = extractTex(texObj)
+    texObj['text'] = tex
+  }
+
   var translate = function(texObj, textInput) {
     var translArr = texObj.translArr
 
@@ -366,5 +372,8 @@ var translate = (function(dict) {
 
   };
 
-  return translate;
+  return {
+    input: translate,
+    arrToObj: arrToObj
+  }
 })(dict_PL);
