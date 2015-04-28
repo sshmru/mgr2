@@ -64,6 +64,7 @@ var Editor = Backbone.Model.extend({
         this.set(obj.editor);
         var to = new TexRoot()
         this.set('texObj',to)
+
         this.parseArr(obj.arr);
       }
     };

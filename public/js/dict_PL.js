@@ -178,7 +178,7 @@ var dict_PL = (function() {
       },
 
       bracketBlock: {
-        tex: '{ \\left\\{ \\begin{array}{l} ## \\end{array} \\right.}',
+        tex: '{ \\left\\{ \\begin{array}{ll} ## \\end{array} \\right.}',
         type: 'block',
         words: ['klamra'],
         newline: {

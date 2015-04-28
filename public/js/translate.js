@@ -336,8 +336,12 @@ var translate = (function(dict) {
 
   var arrToObj = function(texObj, arr){
   
-    while(arr.length){
-      fitWord(arr.shift(), texObj)
+    console.log(texObj, arr)
+    var i = 0
+    var len = arr.length
+    while(i<len){
+      texObj.translArr.push(arr[i])
+      fitWord(arr[i++], texObj)
     }
 
     var tex = extractTex(texObj)
@@ -346,7 +350,6 @@ var translate = (function(dict) {
 
   var translate = function(texObj, textInput) {
     var translArr = texObj.translArr
-
     var newInput = textInput.trim().split(/\s+/);
     newInput.forEach(function(word) {
       var elem = dictCheck(word, texObj);
