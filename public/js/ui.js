@@ -6,40 +6,42 @@ function getFrom(obj, str) {
   return obj
 }
 
-function addParents(obj, str) {
+function addPaths(obj, str) {
   for (var item in obj) {
     if (obj.hasOwnProperty(item) &&
       typeof obj[item] === 'object' &&
       obj[item] !== null &&
       obj[item].constructor === {}.constructor) {
-      addParents(obj[item], str + ' ' + item)
-      obj[item].parent = str + ' ' + item
+      addPaths(obj[item], str + ' ' + item)
+      obj[item].path = str + ' ' + item
     }
   }
 }
 
-a = {
-  a: {},
-  b: {
-    a: {},
-    b: {
-      a: {},
-      b: {}
-    },
-    c: {
-      a: 5
+
+function cloneTranslArr(arr) {
+  var cloned = []
+  function cloneObj(obj) {
+    var cloned = {}
+    for (var o in obj) {
+      if (obj.hasOwnProperty(o)) {
+        if (typeof obj[o] === 'object' && obj[o]!== null) {
+          if (obj[o].constructor === Array) {
+            cloned[o] = []// obj[o].slice(0)
+          } else {
+            if(o !== 'parent'){
+              cloned[o] = obj[o].path || cloneObj(obj[o])
+            }
+          }
+        } else {
+          cloned[o] = obj[o]
+        }
+      }
     }
-  },
-  c: {
-    a: {
-      a: 3
-    },
-    d: 4
-  },
-  d: {
-    a: {
-      a: 1
-    },
-    b: 2
+    return cloned
   }
+  arr.forEach(function(a){
+    cloned.push(cloneObj(a))
+  })
+  return cloned
 }

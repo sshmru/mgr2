@@ -4,9 +4,9 @@ var TexRoot = function() {
   this.tex = '##'
   this.current = this
   this.data = []
-  this.cursor = 'data'
+  this.cursor = 'data' //current input 
   this.modeStack = [dict.normal]
-  this.translArr = []
+  this.translArr = [] //plays key role to rebuilding object(history)
   this.toTex = function() {
     return this.text
   }
@@ -47,11 +47,11 @@ var Editor = Backbone.Model.extend({
 
     this.back = function() {
       console.log('history BACK', history, position);
-      if (position >= 0){
-        var obj =history[--position]
+      if (position >= 0) {
+        var obj = history[--position]
         this.set(obj.editor);
         var to = new TexRoot()
-        this.set('texObj',to)
+        this.set('texObj', to)
 
         this.parseArr(obj.arr)
       }
@@ -59,11 +59,11 @@ var Editor = Backbone.Model.extend({
 
     this.forward = function() {
       console.log('history FORWARD', history, position);
-      if (position < history.length - 1){
+      if (position < history.length - 1) {
         var obj = history[++position]
         this.set(obj.editor);
         var to = new TexRoot()
-        this.set('texObj',to)
+        this.set('texObj', to)
 
         this.parseArr(obj.arr);
       }
@@ -84,7 +84,7 @@ var Editor = Backbone.Model.extend({
       start: function() {
         timer = window.setTimeout(function() {
           //      cb()
-          //      annoyign during tests 
+          //      annoyign during tests --------------------------------------------
         }, delay)
       },
       stop: function() {
@@ -111,16 +111,18 @@ var Editor = Backbone.Model.extend({
       function(a) {
         return fixInput(a);
       }).join(' ');
-    this.set('currInput', textInput);
+    if (textInput[0] !== '#') {
+      this.set('currInput', textInput);
+    }
     this.set('transcr', (this.get('transcr') ? this.get('transcr') + ' ' + textInput : textInput));
-    translate.input(this.attributes.texObj, textInput);
+    translate.input(this.attributes.texObj, textInput, this);
     console.log(this.attributes);
     console.timeEnd('search word');
     this.set('tex', this.getTex());
-
-    this.historyPush(this);// history only if word had effect
+    //would like some fix for multiple useless inputs
+    this.historyPush(this); // history only if word had effect
   },
-  parseArr: function(arr){
+  parseArr: function(arr) {
     translate.arrToObj(this.attributes.texObj, arr);
     this.set('tex', this.getTex());
   },
@@ -130,16 +132,21 @@ var Editor = Backbone.Model.extend({
 
   save: function(name) {
     var self = this;
-    (typeof name !== 'undefined') ? this.set('name', name): this.getArg('name');
+    (typeof name !== 'undefined') ? this.set('name', name): this.set('name', this.getArg('name'));
     console.log('save');
-    window.localStorage[self.attributes.name] = JSON.stringify(self.toJSON());
+    var str = JSON.stringify(compressTranslArr(this.attributes.texObj.translArr));
+    window.localStorage[self.attributes.name] = str
   },
 
   load: function(name) {
     var self = this;
-    (typeof name !== 'undefined') ? this.set('name', name): this.getArg('name');
+    (typeof name !== 'undefined') ? this.set('name', name): this.set('name', this.getArg('name'));
     console.log('load');
-    self.set(JSON.parse(window.localStorage[self.attributes.name]));
+    var to = new TexRoot()
+    this.set('texObj', to)
+    var arr = JSON.parse(window.localStorage[self.attributes.name]);
+    arr = uncompressTranslArr(arr)
+    this.parseArr(arr)
   },
 
   getArg: function() {
@@ -167,16 +174,16 @@ var Editor = Backbone.Model.extend({
   },
 
   pause: function() {
-    if (this.get('mode' !== 'pause')) {
+    if (this.get('mode') !== 'pause') {
       this.set('mode', 'pause');
     }
   },
 
   resume: function() {
     speech.resumeInput();
-    if (this.get('mode' === 'pause')) {
-      console.log(_previousAttributes.mode, 'mode');
-      this.set('mode', _previousAttributes.mode);
+    if (this.get('mode') === 'pause') {
+      console.log(this._previousAttributes.mode, 'mode');
+      this.set('mode', this._previousAttributes.mode);
     }
   },
 
@@ -250,6 +257,7 @@ var InputLine = Backbone.View.extend({
   initialize: function() {
     this.model.on('change', function(data) {
       this.$el.find('input').val(data.attributes.currInput)
+      this.$el.find('div').val(data.attributes.mode)
     }, this);
   },
   events: {
@@ -291,6 +299,47 @@ var menuv = new MenuView({
 var currIn = new InputLine({
   model: ed
 });
+
+
+function compressTranslArr(arr) {
+  var cloned = []
+
+  function cloneObj(obj) {
+    var cloned = {}
+    if (obj && obj.item && obj.item.path) {
+      cloned.item = obj.item.path
+    }
+    for (var o in obj) {
+      if (obj.hasOwnProperty(o)) {
+        if (obj[o] && typeof obj[o] === 'object' || o === 'cursor') {
+          //
+        } else {
+          cloned[o] = obj[o]
+        }
+      }
+    }
+    return cloned
+  }
+  arr.forEach(function(a) {
+    cloned.push(cloneObj(a))
+  })
+  return cloned
+}
+
+function uncompressTranslArr(arr) {
+  function getFrom(obj, str) {
+    str = str.match(/\w+/g)
+    while (str.length) {
+      obj = obj[str.shift()]
+    }
+    return obj
+  }
+  return arr.map(function(a) {
+    if (a.item) a.item = getFrom(dict, a.item)
+    return a
+  })
+}
+
 
 $(function() {
 

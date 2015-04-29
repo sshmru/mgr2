@@ -15,6 +15,9 @@ var dict_PL = (function() {
       plus: {
         tex: '+',
         type: 'operator',
+        func: function(){
+          console.log('ads')
+        },
         words: ['+', 'plus', 'dodać']
       },
 
@@ -80,7 +83,7 @@ var dict_PL = (function() {
       },
 
       multiplication: {
-        tex: '*',
+        tex: '\\cdot',
         type: 'operator',
         words: ['*', 'mnożenie', 'razy', 'pomnożone', 'pomnożyć'],
         banned: {
@@ -373,6 +376,18 @@ var dict_PL = (function() {
   };
 
 
+function addPaths(obj, str) {
+  for (var item in obj) {
+    if (obj.hasOwnProperty(item) &&
+      typeof obj[item] === 'object' &&
+      obj[item] !== null &&
+      obj[item].constructor === {}.constructor) {
+      addPaths(obj[item], str + ' ' + item)
+      obj[item].path = str + ' ' + item
+    }
+  }
+}
+addPaths(dict.normal, 'normal')
 
   return dict;
 })();

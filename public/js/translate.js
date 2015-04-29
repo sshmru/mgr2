@@ -1,13 +1,13 @@
 var translate = (function(dict) {
 
 
-  var dictCheck = function(word, texObj) {
+  var dictCheck = function(word, texObj, file) {
     var modeStack = texObj.modeStack.slice(0);
     //    var modeStack = context.modeStack.slice(0);
 
-    var result = prioritySearch(word) ||
+    var result = prioritySearch(word, file) ||
       findInMode(word, modeStack[modeStack.length - 1], modeStack) ||
-      finalSearch(word)
+      finalSearch(word, file)
 
     return new WordItem(word, result.type, result)
 
@@ -34,7 +34,8 @@ var translate = (function(dict) {
     }
   };
 
-  var finalSearch = function(word, mode) {
+  var finalSearch = function(word, file) {
+    var mode = file.get('mode')
     if (dict.letters.indexOf(word) !== -1) {
       return {
         type: 'letter',
@@ -58,14 +59,16 @@ var translate = (function(dict) {
     }
   };
 
-  var prioritySearch = function(word, mode) {
-    //    if (mode === 'pause') {
-    //      if (dict.modes.pause.resume.words.indexOf(word) !== -1) {
-    //        return new Func(word, 'resume', [])
-    //      } else {
-    //        return new Nil(word)
-    //      }
-    //    }
+  var prioritySearch = function(word, file) {
+    var mode = file.get('mode')
+    if (mode === 'pause') {
+      //      if (dict.modes.pause.resume.words.indexOf(word) !== -1) {
+      //        return new Func(word, 'resume', [])
+      //      } else {
+      //        return new Nil(word)
+      //      }
+      console.log('PAUSE DETECTED')
+    }
 
     if (!isNaN(word)) return {
       type: 'number',
@@ -91,10 +94,10 @@ var translate = (function(dict) {
   };
 
   function InputEnd() {
-      this.word= ''
-      this.tex= ''
-      this.type= 'InputEnd'
-      this.item= ''
+    this.word = ''
+    this.tex = ''
+    this.type = 'InputEnd'
+    this.item = ''
   }
 
   function WordItem(word, type, obj) {
@@ -140,8 +143,10 @@ var translate = (function(dict) {
       //close previous, push to main obj array, set cursor, update stack
     }
 
-    if (elem.func) {
-      //if args, create temp obj and wait for args, if complete, call function
+    if (elem.item && elem.item.func) {
+      console.log('FUNCTION DETECTED')
+      elem.item.func()
+        //if args, create temp obj and wait for args, if complete, call function
     }
 
     if (elem.type === 'override') {
@@ -156,14 +161,17 @@ var translate = (function(dict) {
       //fit at cursor, create new obj if needed
     }
 
+    console.log(modeStack.length)
     if (['number', 'character', 'operator', 'letter', 'text'].indexOf(elem.type) !== -1) {
       var result = elem
       current[current.cursor].push(result);
+      console.log(elem.item)
       if (elem.item) {
         modeStack.push(elem.item);
       }
       //fit at cursor, create new obj if needed
     }
+    console.log(modeStack.length)
 
     if (elem.type === 'block') {
       //      var result = {
@@ -175,10 +183,10 @@ var translate = (function(dict) {
       //        parent: current
       //      };
       var result = elem;
-      elem.data = [],
-        elem.expect = [],
-        elem.cursor = elem.item.cursor || 'data',
-        elem.parent = current
+      elem.data = []
+      elem.expect = []
+      elem.cursor = elem.item.cursor || 'data'
+      elem.parent = current
 
       //expectations array - push everything starting with # to expectations
       elem.tex.match(/#[^\s]*/g).forEach(function(a) {
@@ -334,12 +342,12 @@ var translate = (function(dict) {
     }
   }
 
-  var arrToObj = function(texObj, arr){
-  
+  var arrToObj = function(texObj, arr) {
+
     console.log(texObj, arr)
     var i = 0
     var len = arr.length
-    while(i<len){
+    while (i < len) {
       texObj.translArr.push(arr[i])
       fitWord(arr[i++], texObj)
     }
@@ -348,11 +356,12 @@ var translate = (function(dict) {
     texObj['text'] = tex
   }
 
-  var translate = function(texObj, textInput) {
+  var translate = function(texObj, textInput, file) {
     var translArr = texObj.translArr
     var newInput = textInput.trim().split(/\s+/);
+    // could ade mode related things to PAUSE, BREAK, TIMEOUT, FN in there
     newInput.forEach(function(word) {
-      var elem = dictCheck(word, texObj);
+      var elem = dictCheck(word, texObj, file);
       var prevLength = translArr.length
       applyElem(elem, translArr)
         //fit only if array length increased
