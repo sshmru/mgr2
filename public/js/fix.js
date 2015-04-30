@@ -36,8 +36,8 @@ var fixInput = function(word) {
     100: ['setny', 'setnej', 'sto', 'setnego'],
     '2 pi r': ['o2pl'],
     'pi r kwadrat': ['prawda2'],
-    'ułamek': 'zamek',
-    'wstecz': 'stat'
+    'ułamek': ['zamek'],
+    'wstecz': ['stat']
   };
   for (var entry in fixes) {
     if (fixes[entry].indexOf(word) !== -1) return entry;
