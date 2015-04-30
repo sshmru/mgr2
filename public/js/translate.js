@@ -60,13 +60,24 @@ var translate = (function(dict) {
   };
 
   var prioritySearch = function(word, file) {
+    var commands = dict.commands
+    for (var command in commands) {
+      if (commands[command].words.indexOf(word) !== -1) {
+        return {
+          type: 'func',
+          tex: '',
+          func: commands[command].func,
+          args: commands[command].args
+        }
+      }
+    }
+
     var mode = file.get('mode')
     if (mode === 'pause') {
-      //      if (dict.modes.pause.resume.words.indexOf(word) !== -1) {
-      //        return new Func(word, 'resume', [])
-      //      } else {
-      //        return new Nil(word)
-      //      }
+      return {
+        type: 'none',
+        tex: ''
+      }
       console.log('PAUSE DETECTED')
     }
 
@@ -83,17 +94,6 @@ var translate = (function(dict) {
       }
     }
 
-    var commands = dict.commands
-    for (var command in commands) {
-      if (commands[command].words.indexOf(word) !== -1) {
-        return {
-          type: 'func',
-          tex: '',
-          func: commands[command].func,
-          args: commands[command].args
-        }
-      }
-    }
     return null
   };
 
@@ -266,7 +266,7 @@ var translate = (function(dict) {
   var extractTex = function(obj) {
     //mark cursor position
     var atCursor = obj.current[obj.current.cursor]
-    atCursor.push('\\heartsuit')
+    atCursor.push('\\class{cursor}{ \\heartsuit }')
 
     var extractArr = function(arr) {
       if (arr.constructor === [].constructor && arr.length > 0) {
@@ -366,11 +366,32 @@ var translate = (function(dict) {
   }
 
   var applyFun = function(elem, file) {
-    console.log(elem)
     if (elem.args.length === 0) {
       file[elem.func]()
     } else {
-      console.log(elem.args)
+      file.set({
+        'mode': 'func',
+        'func': file[elem.func],
+        'args': elem.args
+      })
+    }
+  }
+  var applyArgs = function(arg, file){
+    func = file.get('func')
+    if(func.length === 1){
+      console.log('running func', arg)
+      func.call(file, arg)
+      file.set({
+        'mode': file.get('prevmode'),
+        'func':null,
+        'args':[]
+      })
+    }else{
+      console.log('AAAAAAAAAAAAa')
+      file.attributes.args.pop()
+      file.set({
+        'func': file.get('func').bind(file, arg),
+      })
     }
   }
 
@@ -379,15 +400,19 @@ var translate = (function(dict) {
     var newInput = textInput.trim().split(/\s+/);
     // could ade mode related things to PAUSE, BREAK, TIMEOUT, FN in there
     newInput.forEach(function(word) {
-      var elem = dictCheck(word, texObj, file);
-      if (elem.type === 'func' || file.mode === 'func') {
-        applyFun(elem, file)
+      if (file.get('mode') === 'func') {
+        applyArgs(word,file)
       } else {
-        var prevLength = translArr.length
-        applyElem(elem, translArr)
-          //fit only if array length increased
-        if (prevLength !== translArr.length) {
-          fitWord(translArr[translArr.length - 1], texObj);
+        var elem = dictCheck(word, texObj, file);
+        if (elem.type === 'func') {
+          applyFun(elem, file)
+        } else {
+          var prevLength = translArr.length
+          applyElem(elem, translArr)
+            //fit only if array length increased
+          if (prevLength !== translArr.length) {
+            fitWord(translArr[translArr.length - 1], texObj);
+          }
         }
       }
     });

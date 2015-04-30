@@ -18,14 +18,18 @@ var Editor = Backbone.Model.extend({
     currInput: '',
     tex: '',
     mode: 'math',
+    prevmode: 'normal'
   },
   initialize: function() {
     var self = this
     this.set('texObj', new TexRoot())
 
-    //    this.on('change', function() {
-    //      console.log('changed')
-    //    })
+    this.on('change:mode', function(data) {
+      console.log(data)
+      if (data._previousAttributes.mode !== 'pause') {
+        this.set('prevmode', data._previousAttributes.mode)
+      }
+    })
 
     var history = [];
 
@@ -132,19 +136,18 @@ var Editor = Backbone.Model.extend({
 
   save: function(name) {
     var self = this;
-    (typeof name !== 'undefined') ? this.set('name', name): this.set('name', this.getArg('name'));
+    (typeof name !== 'undefined') ? this.set('name', name): this.set('name', prompt('name'));
     console.log('save');
     var str = JSON.stringify(compressTranslArr(this.attributes.texObj.translArr));
     window.localStorage[self.attributes.name] = str
   },
 
   load: function(name) {
-    var self = this;
-    (typeof name !== 'undefined') ? this.set('name', name): this.set('name', this.getArg('name'));
+    var name = (typeof name !== 'undefined') ? name : prompt('name')
     console.log('load');
     var to = new TexRoot()
-    this.set('texObj', to)
-    var arr = JSON.parse(window.localStorage[self.attributes.name]);
+    var arr = JSON.parse(window.localStorage[name]);
+    var to = new TexRoot()
     arr = uncompressTranslArr(arr)
     this.parseArr(arr)
   },
@@ -159,11 +162,10 @@ var Editor = Backbone.Model.extend({
   },
 
   export: function(name) {
-    var self = this;
-    (typeof name !== 'undefined') ? this.set('name', name): this.getArg('name');
+    (typeof name !== 'undefined') ? this.set('name', name): this.set('name', prompt('name'));
     var a = document.createElement('a');
-    a.href = 'data:text/plain;charset=utf-8,' + self.attributes.tex;
-    a.download = self.attributes.name + '.tex';
+    a.href = 'data:text/plain;charset=utf-8,' + this.get('tex');
+    a.download = this.get('name') + '.tex';
     document.body.appendChild(a);
     a.click();
     a.parentNode.removeChild(a);
@@ -176,14 +178,16 @@ var Editor = Backbone.Model.extend({
   pause: function() {
     if (this.get('mode') !== 'pause') {
       this.set('mode', 'pause');
+    } else {
+      this.set('mode', this.get('prevmode'));
     }
   },
 
   resume: function() {
     speech.resumeInput();
     if (this.get('mode') === 'pause') {
-      console.log(this._previousAttributes.mode, 'mode');
-      this.set('mode', this._previousAttributes.mode);
+      console.log(this.get('prevmode'), 'mode');
+      this.set('mode', this.get('prevmode'));
     }
   },
 
@@ -195,14 +199,22 @@ var Editor = Backbone.Model.extend({
   mathMode: function() {
     this.set('mode', 'math');
     console.log('note mode');
-  }
+  },
+    fontSize: function(num) {
+      MathJax.Hub.Queue(function() {
+        var math = document.getElementById("editor");
+        math.style.fontSize = num + 'px'
+        MathJax.Hub.Queue(["Rerender", MathJax.Hub, math]);
+      })
+      console.log('font size', num)
+    }
 });
 
 
 var MenuView = Backbone.View.extend({
   initialize: function() {
     this.model.on('showMenu', function() {
-      $('#menuBox').show();
+      $('#menuBox').toggle();
     }, this);
   },
 
@@ -257,7 +269,7 @@ var InputLine = Backbone.View.extend({
   initialize: function() {
     this.model.on('change', function(data) {
       this.$el.find('input').val(data.attributes.currInput)
-      this.$el.find('div').val(data.attributes.mode)
+      this.$el.find('div').html(data.attributes.mode)
     }, this);
   },
   events: {
@@ -356,6 +368,8 @@ $(function() {
   $('#editor').html(edv.render().el);
 
   $('#currInput').html(currIn.render().el);
+  $('#currInput>div>input').focus()
+
 
   speech.init(dict, ed);
 

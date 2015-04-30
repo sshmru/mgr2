@@ -273,6 +273,12 @@ var dict_PL = (function() {
   };
 
   dict.commands = {
+    resume: {
+      func: 'resume',
+      args: [],
+      words: ['wznów', 'resume']
+    },
+
     pause: {
       func: 'pause',
       args: [],
@@ -314,6 +320,13 @@ var dict_PL = (function() {
       args: [],
       words: ['menu', 'many', 'help'],
     },
+
+    menu: {
+      func: 'fontSize',
+      args: ['num'],
+      words: ['font', 'rozmiar', 'czcionka'],
+    },
+
 
   };
 

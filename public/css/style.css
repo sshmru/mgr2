@@ -1,0 +1,69 @@
+body{
+  margin:0;
+  padding:0;
+}
+
+#menu{
+  font-size: 2em;
+}
+
+#menuBox{
+  position:fixed;
+  width:100%;
+  height:100%;
+  bottom:0;;
+  background:rgba(6,18,57,0.8);
+  font-size:1.5em;
+}
+#menu ul{
+  list-style:none;
+}
+
+
+#currInput>div{
+  left:0;
+  right:0;
+  bottom:0;
+  position:fixed;
+  height:3.8em;
+  border-top:1px black solid;
+  background:#fff;
+}
+#currInput>div>input{
+  font-size:3em;
+  position:absolute;
+  right:0;
+  bottom:0;
+  left:0;
+  width:70%;
+  border:0;
+}
+#currInput>div>div{
+  right:0;
+  bottom:0;
+  position:absolute;
+  width:20%;
+  font-size:3em;
+}
+
+.cursor{
+  display:block;
+  width:1em;
+  height:1em;
+  background:black;
+  animation: pulse 1.5s linear infinite;
+}
+@keyframes pulse{
+  0%{
+    background:black;
+  }
+   25%{
+    background:black;
+  }
+   30%{
+    background:white;
+  }
+   95%{
+    background:white;
+  }
+}
