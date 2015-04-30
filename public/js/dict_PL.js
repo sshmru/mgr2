@@ -315,17 +315,6 @@ var dict_PL = (function() {
       words: ['menu', 'many', 'help'],
     },
 
-    note: {
-      func: 'noteMode',
-      args: [],
-      words: ['notuj', 'notacji', 'notatki', 'notacja'],
-    },
-
-    math: {
-      func: 'mathMode',
-      args: [],
-      words: ['matematyka', 'matematyczny', 'obliczenia'],
-    },
   };
 
   dict.endBlock = ['koniec', 'escape', 'esc', '#BREAK#']

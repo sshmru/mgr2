@@ -83,13 +83,17 @@ var translate = (function(dict) {
       }
     }
 
-    //    var commands = dict.commands
-    //    for (var command in commands) {
-    //      if (commands[command].words.indexOf(word) !== -1) {
-    //        return new Func(word, commands[command].func, commands[command].args);
-    //      }
-    //    }
-
+    var commands = dict.commands
+    for (var command in commands) {
+      if (commands[command].words.indexOf(word) !== -1) {
+        return {
+          type: 'func',
+          tex: '',
+          func: commands[command].func,
+          args: commands[command].args
+        }
+      }
+    }
     return null
   };
 
@@ -103,14 +107,18 @@ var translate = (function(dict) {
   function WordItem(word, type, obj) {
     this.tex = ''
     this.type = type || 'none'
-    this.word = word,
-      this.item = null
+    this.word = word
+    this.item = null
     if (type !== 'none') {
-      this.tex = obj.tex,
-        this.item = obj
+      this.tex = obj.tex
+      this.item = obj
     }
     if (type === 'text') {
       this.tex = word
+    }
+    if (type === 'func') {
+      this.func = obj.func
+      this.args = obj.args
     }
   }
 
@@ -122,6 +130,12 @@ var translate = (function(dict) {
     //removes the expectation when cursor not empty
     if (current[current.cursor].length && current.expect) {
       current.expect.splice(current.expect.indexOf(current.cursor), 1);
+    }
+
+    if (elem.item && elem.item.func) {
+      console.log('FUNCTION DETECTED')
+      elem.item.func()
+        //if args, create temp obj and wait for args, if complete, call function
     }
 
     if (elem.type === 'mode') {
@@ -143,11 +157,6 @@ var translate = (function(dict) {
       //close previous, push to main obj array, set cursor, update stack
     }
 
-    if (elem.item && elem.item.func) {
-      console.log('FUNCTION DETECTED')
-      elem.item.func()
-        //if args, create temp obj and wait for args, if complete, call function
-    }
 
     if (elem.type === 'override') {
       var result = elem
@@ -356,17 +365,30 @@ var translate = (function(dict) {
     texObj['text'] = tex
   }
 
+  var applyFun = function(elem, file) {
+    console.log(elem)
+    if (elem.args.length === 0) {
+      file[elem.func]()
+    } else {
+      console.log(elem.args)
+    }
+  }
+
   var translate = function(texObj, textInput, file) {
     var translArr = texObj.translArr
     var newInput = textInput.trim().split(/\s+/);
     // could ade mode related things to PAUSE, BREAK, TIMEOUT, FN in there
     newInput.forEach(function(word) {
       var elem = dictCheck(word, texObj, file);
-      var prevLength = translArr.length
-      applyElem(elem, translArr)
-        //fit only if array length increased
-      if (prevLength !== translArr.length) {
-        fitWord(translArr[translArr.length - 1], texObj);
+      if (elem.type === 'func' || file.mode === 'func') {
+        applyFun(elem, file)
+      } else {
+        var prevLength = translArr.length
+        applyElem(elem, translArr)
+          //fit only if array length increased
+        if (prevLength !== translArr.length) {
+          fitWord(translArr[translArr.length - 1], texObj);
+        }
       }
     });
 
