@@ -119,12 +119,12 @@ var Editor = Backbone.Model.extend({
       this.set('currInput', textInput);
     }
     this.set('transcr', (this.get('transcr') ? this.get('transcr') + ' ' + textInput : textInput));
-    translate.input(this.attributes.texObj, textInput, this);
+    var history = translate.input(this.attributes.texObj, textInput, this);
     console.log(this.attributes);
     console.timeEnd('search word');
     this.set('tex', this.getTex());
     //would like some fix for multiple useless inputs
-    this.historyPush(this); // history only if word had effect
+    if(history){this.historyPush(this)} // history only if word had effect
   },
   parseArr: function(arr) {
     translate.arrToObj(this.attributes.texObj, arr);

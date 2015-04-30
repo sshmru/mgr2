@@ -35,7 +35,9 @@ var fixInput = function(word) {
     90: ['dziewięćdziesiąty', 'dziewięćdziesiątej', 'dziewięćdziesiąt', 'dziewięćdziesiątego'],
     100: ['setny', 'setnej', 'sto', 'setnego'],
     '2 pi r': ['o2pl'],
-    'pi r kwadrat': ['prawda2']
+    'pi r kwadrat': ['prawda2'],
+    'ułamek': 'zamek',
+    'wstecz': 'stat'
   };
   for (var entry in fixes) {
     if (fixes[entry].indexOf(word) !== -1) return entry;

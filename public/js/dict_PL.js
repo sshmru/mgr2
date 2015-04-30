@@ -3,6 +3,55 @@ var dict_PL = (function() {
   dict.lang = 'pl-PL';
 
   dict.modes = {
+    logic: {
+      tex: '$$ { ## } $$',
+      type: 'mode',
+      name:'logic',
+      words: ['logika'],
+    },
+    arithmetic: {
+      tex: '$$ { ## } $$',
+      type: 'mode',
+      name:'arithmetic',
+      words: ['arytmatyka'],
+    },
+    algebra: {
+      tex: '$$ { ## } $$',
+      type: 'mode',
+      name:'algebra',
+      words: ['algebra'],
+    },
+    alghoritms: {
+      tex: '$$ { ## } $$',
+      name:'alghoritms',
+      type: 'mode',
+      words: ['algorytmy'],
+    },
+    sets: {
+      tex: '$$ { ## } $$',
+      type: 'mode',
+      name:'sets',
+      words: ['zbiory', 'zbiorów'],
+      sum: {
+        tex: '{ { #first }  \\cup { #second } }',
+        cursor: '#first',
+        type: 'block',
+        words: ['suma', 'sumą', 'sumo'],
+        first: {
+          type: '#first',
+          words: ['pierwszy']
+        },
+        second: {
+          type: '#second',
+          words: ['i', 'oraz', 'drugi'],
+        },
+        banned: {
+          tex:'',
+          words: ['zbiorów'],
+        },
+      },
+    },
+
     math: {
       tex: '$$ { ## } $$',
       type: 'mode',
@@ -166,7 +215,7 @@ var dict_PL = (function() {
         tex: '{\\sum ^{ #to } _{ #from } { #where } }',
         cursor: '#from',
         type: 'block',
-        words: [''],
+        words: ['suma'],
         from: {
           type: '#from',
           words: ['od']
@@ -189,55 +238,6 @@ var dict_PL = (function() {
           tex: '\\\\ ',
           type: 'character',
           words: ['dalej', 'nizej']
-        },
-      },
-    },
-
-    logic: {
-      tex: '$$ { ## } $$',
-      type: 'mode',
-      name:'logic',
-      words: ['logika'],
-    },
-    arithmetic: {
-      tex: '$$ { ## } $$',
-      type: 'mode',
-      name:'arithmetic',
-      words: ['arytmatyka'],
-    },
-    algebra: {
-      tex: '$$ { ## } $$',
-      type: 'mode',
-      name:'algebra',
-      words: ['algebra'],
-    },
-    alghoritms: {
-      tex: '$$ { ## } $$',
-      name:'alghoritms',
-      type: 'mode',
-      words: ['algorytmy'],
-    },
-    sets: {
-      tex: '$$ { ## } $$',
-      type: 'mode',
-      name:'sets',
-      words: ['zbiory', 'zbiorów'],
-      sum: {
-        tex: '{ { #first }  \\cup { #second } }',
-        cursor: '#first',
-        type: 'block',
-        words: ['suma', 'sumą', 'sumo'],
-        first: {
-          type: '#first',
-          words: ['pierwszy']
-        },
-        second: {
-          type: '#second',
-          words: ['i', 'oraz', 'drugi'],
-        },
-        banned: {
-          tex:'',
-          words: ['zbiorów'],
         },
       },
     },

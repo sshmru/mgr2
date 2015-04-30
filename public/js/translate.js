@@ -143,7 +143,6 @@ var translate = (function(dict) {
   }
 
   var fitWord = function(elem, texObj) {
-    console.log(elem)
     var current = texObj.current;
     var modeStack = texObj.modeStack
 
@@ -190,7 +189,6 @@ var translate = (function(dict) {
       //fit at cursor, create new obj if needed
     }
 
-    console.log(modeStack.length)
     if (['number', 'character', 'operator', 'letter', 'text'].indexOf(elem.type) !== -1) {
       var result = elem
       current[current.cursor].push(result);
@@ -200,7 +198,6 @@ var translate = (function(dict) {
       }
       //fit at cursor, create new obj if needed
     }
-    console.log(modeStack.length)
 
     if (elem.type === 'block') {
       //      var result = {
@@ -387,7 +384,7 @@ var translate = (function(dict) {
 
   var applyFun = function(elem, file) {
     if (elem.args.length === 0) {
-      file[elem.func]()
+      file[elem.func].call(file)
     } else {
       file.set({
         'mode': 'func',
@@ -416,6 +413,7 @@ var translate = (function(dict) {
   }
 
   var translate = function(texObj, textInput, file) {
+    var history = false
     var translArr = texObj.translArr
     var newInput = textInput.trim().split(/\s+/);
     // could ade mode related things to PAUSE, BREAK, TIMEOUT, FN in there
@@ -425,6 +423,7 @@ var translate = (function(dict) {
       } else if (file.get('mode') === 'none') {
         var res = determineMode(word, file)
         if (res) {
+          history = true
           applyElem(res.mode, translArr)
           fitWord(translArr[translArr.length - 1], texObj);
           if (res.found) {
@@ -437,6 +436,7 @@ var translate = (function(dict) {
         if (elem.type === 'func') {
           applyFun(elem, file)
         } else {
+          history = true
           var prevLength = translArr.length
           applyElem(elem, translArr)
             //fit only if array length increased
@@ -458,7 +458,7 @@ var translate = (function(dict) {
     console.log('result text: ')
     console.log(tex)
     texObj['text'] = tex
-
+    return history
   };
 
   return {
