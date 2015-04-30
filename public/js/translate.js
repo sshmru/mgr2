@@ -121,6 +121,26 @@ var translate = (function(dict) {
       this.args = obj.args
     }
   }
+  var determineMode = function(word, file) {
+    var found = findInMode(word, dict.normal, [])
+    if (found) {
+      file.set('mode', found.type)
+      return {
+        mode: new WordItem(word, 'mode', found)
+      }
+    }
+
+    for (var mode in dict.modes) {
+      var found = findInMode(word, dict.modes[mode], [])
+      if (found) {
+        file.set('mode', mode)
+        return {
+          mode: new WordItem(word, 'mode', dict.modes[mode]),
+          found: new WordItem(word, found.type, found)
+        }
+      }
+    }
+  }
 
   var fitWord = function(elem, texObj) {
     console.log(elem)
@@ -376,17 +396,17 @@ var translate = (function(dict) {
       })
     }
   }
-  var applyArgs = function(arg, file){
+  var applyArgs = function(arg, file) {
     func = file.get('func')
-    if(func.length === 1){
+    if (func.length === 1) {
       console.log('running func', arg)
       func.call(file, arg)
       file.set({
         'mode': file.get('prevmode'),
-        'func':null,
-        'args':[]
+        'func': null,
+        'args': []
       })
-    }else{
+    } else {
       console.log('AAAAAAAAAAAAa')
       file.attributes.args.pop()
       file.set({
@@ -401,7 +421,17 @@ var translate = (function(dict) {
     // could ade mode related things to PAUSE, BREAK, TIMEOUT, FN in there
     newInput.forEach(function(word) {
       if (file.get('mode') === 'func') {
-        applyArgs(word,file)
+        applyArgs(word, file)
+      } else if (file.get('mode') === 'none') {
+        var res = determineMode(word, file)
+        if (res) {
+          applyElem(res.mode, translArr)
+          fitWord(translArr[translArr.length - 1], texObj);
+          if (res.found) {
+            applyElem(res.found, translArr)
+            fitWord(translArr[translArr.length - 1], texObj);
+          }
+        }
       } else {
         var elem = dictCheck(word, texObj, file);
         if (elem.type === 'func') {

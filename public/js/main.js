@@ -17,7 +17,7 @@ var Editor = Backbone.Model.extend({
     transcr: '',
     currInput: '',
     tex: '',
-    mode: 'math',
+    mode: 'none',
     prevmode: 'normal'
   },
   initialize: function() {

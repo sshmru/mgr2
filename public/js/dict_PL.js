@@ -6,6 +6,7 @@ var dict_PL = (function() {
     math: {
       tex: '$$ { ## } $$',
       type: 'mode',
+      name: 'math',
       words: ['matematyka', 'matematyczny'],
       end: {
         type: 'end',
@@ -15,7 +16,7 @@ var dict_PL = (function() {
       plus: {
         tex: '+',
         type: 'operator',
-        func: function(){
+        func: function() {
           console.log('ads')
         },
         words: ['+', 'plus', 'dodać']
@@ -165,7 +166,7 @@ var dict_PL = (function() {
         tex: '{\\sum ^{ #to } _{ #from } { #where } }',
         cursor: '#from',
         type: 'block',
-        words: ['suma'],
+        words: [''],
         from: {
           type: '#from',
           words: ['od']
@@ -190,36 +191,61 @@ var dict_PL = (function() {
           words: ['dalej', 'nizej']
         },
       },
+    },
 
-      logic: {
-        tex: '',
-        type: '',
-        words: [],
-      },
-      arithmetic: {
-        tex: '',
-        type: '',
-        words: [],
-      },
-      algebra: {
-        tex: '',
-        type: '',
-        words: [],
-      },
-      alghoritms: {
-        tex: '',
-        type: '',
-        words: [],
-      },
-      sets: {
-        type: '',
-        words: [],
+    logic: {
+      tex: '$$ { ## } $$',
+      type: 'mode',
+      name:'logic',
+      words: ['logika'],
+    },
+    arithmetic: {
+      tex: '$$ { ## } $$',
+      type: 'mode',
+      name:'arithmetic',
+      words: ['arytmatyka'],
+    },
+    algebra: {
+      tex: '$$ { ## } $$',
+      type: 'mode',
+      name:'algebra',
+      words: ['algebra'],
+    },
+    alghoritms: {
+      tex: '$$ { ## } $$',
+      name:'alghoritms',
+      type: 'mode',
+      words: ['algorytmy'],
+    },
+    sets: {
+      tex: '$$ { ## } $$',
+      type: 'mode',
+      name:'sets',
+      words: ['zbiory', 'zbiorów'],
+      sum: {
+        tex: '{ { #first }  \\cup { #second } }',
+        cursor: '#first',
+        type: 'block',
+        words: ['suma', 'sumą', 'sumo'],
+        first: {
+          type: '#first',
+          words: ['pierwszy']
+        },
+        second: {
+          type: '#second',
+          words: ['i', 'oraz', 'drugi'],
+        },
+        banned: {
+          tex:'',
+          words: ['zbiorów'],
+        },
       },
     },
 
     text: {
       tex: '$$ \\text{ ## } $$',
       type: 'mode',
+      name: 'text',
       words: ['tekstowy', 'tekst'],
 
       colon: {
@@ -251,24 +277,18 @@ var dict_PL = (function() {
       },
     },
 
-    pause: {
-      func: 'pause',
-      words: ['pauza', 'przerwij'],
-      end: {
-        type: 'end',
-        func: 'resume',
-        words: ['wznów', 'koniec']
-      }
-    },
-
   };
 
   dict.normal = {
     type: 'mode',
 
-    pause: dict.modes.pause,
     math: dict.modes.math,
     text: dict.modes.text,
+    logic: dict.modes.logic,
+    arithmetic: dict.modes.arithmetic,
+    algebra: dict.modes.algebra,
+    alghoritms: dict.modes.alghoritms,
+    sets: dict.modes.sets
 
   };
 
@@ -378,18 +398,18 @@ var dict_PL = (function() {
   };
 
 
-function addPaths(obj, str) {
-  for (var item in obj) {
-    if (obj.hasOwnProperty(item) &&
-      typeof obj[item] === 'object' &&
-      obj[item] !== null &&
-      obj[item].constructor === {}.constructor) {
-      addPaths(obj[item], str + ' ' + item)
-      obj[item].path = str + ' ' + item
+  function addPaths(obj, str) {
+    for (var item in obj) {
+      if (obj.hasOwnProperty(item) &&
+        typeof obj[item] === 'object' &&
+        obj[item] !== null &&
+        obj[item].constructor === {}.constructor) {
+        addPaths(obj[item], str + ' ' + item)
+        obj[item].path = str + ' ' + item
+      }
     }
   }
-}
-addPaths(dict.normal, 'normal')
+  addPaths(dict.normal, 'normal')
 
   return dict;
 })();
