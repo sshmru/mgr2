@@ -158,7 +158,10 @@ var translate = (function(dict) {
 
     //removes the expectation when cursor not empty
     if (current[current.cursor].length && current.expect) {
-      current.expect.splice(current.expect.indexOf(current.cursor), 1);
+      var index = current.expect.indexOf(current.cursor)
+      if (index !== -1) {
+        current.expect.splice(index, 1)
+      }
     }
 
     if (elem.item && elem.item.func && elem.type !== 'modifier') {
@@ -181,7 +184,7 @@ var translate = (function(dict) {
       texObj.current = result;
 
       file.set('mode', elem.item.name)
-      //clear stack and add mode dictionary
+        //clear stack and add mode dictionary
       modeStack = [dict.normal]
       texObj.modeStack = modeStack
       modeStack.push(elem.item);
@@ -296,7 +299,7 @@ var translate = (function(dict) {
     var mode = file.get('mode')
     var atCursor = obj.current[obj.current.cursor]
     var visualCursor = '\\class{cursor}{ \\heartsuit }'
-    if(mode === 'text'){
+    if (mode === 'text') {
       visualCursor = '$' + visualCursor + '$'
     }
     atCursor.push(visualCursor)
@@ -398,15 +401,15 @@ var translate = (function(dict) {
   var remove = function(texObj, amount, file) {
     //      texObj.translArr.length - 1
     var currArr = texObj.current[texObj.current.cursor]
-    if (currArr.length > 1) {
+    if (currArr.length > 0) {
       currArr.pop()
-      texObj.current = currArr[currArr.length - 1]
-    } else if (currArr.length === 1) {
-      currArr.pop()
-      texObj.current = currArr[currArr.length - 1]
-      if (texObj.current.parent) texObj.current = texObj.current.parent
     } else {
-      texObj.current = texObj.current.parent
+      if (texObj.current.parent) {
+        texObj.current = texObj.current.parent
+        amount++
+      } else {
+        texObj.current = texObj
+      }
     }
     if (--amount) {
       remove(texObj, amount, file)

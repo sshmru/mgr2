@@ -131,7 +131,7 @@ var Editor = Backbone.Model.extend({
   parseArr: function(arr) {
     var to = new TexRoot()
     this.set('texObj', to)
-    translate.arrToObj(this.attributes.texObj, arr, file);
+    translate.arrToObj(this.attributes.texObj, arr, this);
     this.set('tex', this.getTex());
   },
   remove: function(amount) {
