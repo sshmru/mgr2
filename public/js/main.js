@@ -131,12 +131,13 @@ var Editor = Backbone.Model.extend({
   parseArr: function(arr) {
     var to = new TexRoot()
     this.set('texObj', to)
-    translate.arrToObj(this.attributes.texObj, arr);
+    translate.arrToObj(this.attributes.texObj, arr, file);
     this.set('tex', this.getTex());
   },
   remove: function(amount) {
     this.historyPush(this)
-    translate.remove(this.attributes.texObj, amount);
+    amount = amount || 1
+    translate.remove(this.attributes.texObj, amount, this);
     this.set('tex', this.getTex());
   },
   getTex: function() {
@@ -178,6 +179,7 @@ var Editor = Backbone.Model.extend({
   },
 
   showMenu: function() {
+    console.log('MENU PLEASE')
     this.trigger('showMenu', 'showMenu');
   },
 

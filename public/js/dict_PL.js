@@ -62,6 +62,11 @@ var dict_PL = (function() {
         words: ['koniec', 'normal', 'escape']
       },
 
+      text: {
+        type: 'number',
+        rxp: /\d+/
+      },
+
       plus: {
         tex: '+',
         type: 'operator',
@@ -105,8 +110,12 @@ var dict_PL = (function() {
         equal: {
           tex: '\\geq',
           type: 'override',
-          words: ['=', 'równe', 'równa']
-        }
+          words: ['=', 'równe', 'równa'],
+        },
+        banned: {
+          tex: '',
+          words: ['od', 'lub']
+        },
       },
 
       lesser: {
@@ -116,7 +125,11 @@ var dict_PL = (function() {
         equal: {
           tex: '\\leq',
           type: 'override',
-          words: ['=', 'równe', 'równa']
+          words: ['=', 'równe', 'równa'],
+        },
+        banned: {
+          tex: '',
+          words: ['od', 'lub']
         },
       },
 
@@ -134,6 +147,12 @@ var dict_PL = (function() {
           tex: '',
           words: ['przez', 'na']
         },
+      },
+
+      funBraces: {
+        tex: '( ## )',
+        type: 'block',
+        words: ['od'],
       },
 
       multiplication: {
@@ -235,19 +254,24 @@ var dict_PL = (function() {
       },
 
       bracketBlock: {
-        tex: '{ \\left\\{ \\begin{array}{ll} ## \\end{array} \\right.}',
+        tex: '{ \\left\\{ \\begin{array}{llp} ## \\end{array} \\right.}',
         type: 'block',
         words: ['klamra'],
         newline: {
           tex: '\\\\ ',
           type: 'character',
-          words: ['dalej', 'nizej']
+          words: ['oraz', 'nizej']
+        },
+        when: {
+          tex: ' & \\text{dla } ',
+          type: 'character',
+          words: ['dla', 'if', 'gdy', 'kiedy']
         },
       },
     },
 
     text: {
-      tex: '$$ ## $$',
+      tex: '$$ \\text{ ## } $$',
       type: 'mode',
       name: 'text',
       words: ['tekstowy', 'tekst'],
@@ -259,7 +283,7 @@ var dict_PL = (function() {
       },
 
       newLine: {
-        tex: '$$ ## $$',
+        tex: '$$ \\text{ ## } $$',
         type: 'block',
         words: ['enter', 'linia', 'linii']
       },
@@ -275,10 +299,6 @@ var dict_PL = (function() {
         words: ['normal', 'escape'],
       },
 
-      text: {
-        type: 'text',
-        rxp: /.*/
-      },
     },
 
   };
@@ -351,7 +371,7 @@ var dict_PL = (function() {
       words: ['menu', 'many', 'help'],
     },
 
-    menu: {
+    font: {
       func: 'fontSize',
       args: ['num'],
       words: ['font', 'rozmiar', 'czcionka'],
@@ -411,8 +431,8 @@ var dict_PL = (function() {
     upcase: {
       tex: '',
       type: 'modifier',
-      func: function(item){
-        item.tex = item.tex.replace(/\w/, item.tex[item.tex.search(/\w/)].toUpperCase() )
+      func: function(item) {
+        item.tex = item.tex.replace(/\w/, item.tex[item.tex.search(/\w/)].toUpperCase())
       },
       words: ['shift', 'wielkie', 'duże', 'wielka']
 
@@ -420,8 +440,8 @@ var dict_PL = (function() {
     lowcaese: {
       tex: '',
       type: 'modifier',
-      func: function(item){
-        item.tex = item.tex.replace(/\w/, item.tex[item.tex.search(/\w/)].toLowerCase() )
+      func: function(item) {
+        item.tex = item.tex.replace(/\w/, item.tex[item.tex.search(/\w/)].toLowerCase())
       },
       words: ['małe', 'mała']
     }
