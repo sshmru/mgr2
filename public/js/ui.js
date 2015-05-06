@@ -1,47 +1,34 @@
-function getFrom(obj, str) {
-  str = str.match(/\w/g)
-  while (str.length) {
-    obj = obj[str.shift()]
-  }
-  return obj
-}
+jedna druga trzecia czwarta piąta szósta siódma ósma dziewiąta dziesiąta 
+na ga cia ta ta ta ma ta ta nasta 
+dwie drugie trzecie czwarte piąta szósta siódme ósme dziewiąte dziesiąte
+ie ie ie te ta ta me me te te naste
+sześć drugich trzecich czwartch piątych szóstych siódmych ósmych dziewiątych dziesiątych 
+ich ich ch ch ch ych ych ych ych ych nastych
 
-function addPaths(obj, str) {
-  for (var item in obj) {
-    if (obj.hasOwnProperty(item) &&
-      typeof obj[item] === 'object' &&
-      obj[item] !== null &&
-      obj[item].constructor === {}.constructor) {
-      addPaths(obj[item], str + ' ' + item)
-      obj[item].path = str + ' ' + item
-    }
-  }
+
+if(/(na|ga|cia|ta|ma|ie|te|me|ch)$/.test(curr.word)){
+  prev.tex = '{ \\frac { '+prev.tex +' } { ' + curr.tex+ ' } }'
+  prev.word += curr.word
 }
 
 
-function cloneTranslArr(arr) {
-  var cloned = []
-  function cloneObj(obj) {
-    var cloned = {}
-    for (var o in obj) {
-      if (obj.hasOwnProperty(o)) {
-        if (typeof obj[o] === 'object' && obj[o]!== null) {
-          if (obj[o].constructor === Array) {
-            cloned[o] = []// obj[o].slice(0)
-          } else {
-            if(o !== 'parent'){
-              cloned[o] = obj[o].path || cloneObj(obj[o])
-            }
-          }
-        } else {
-          cloned[o] = obj[o]
-        }
-      }
-    }
-    return cloned
-  }
-  arr.forEach(function(a){
-    cloned.push(cloneObj(a))
-  })
-  return cloned
+ var countZeros = function(num){
+   for(var i = 0; num>0 && num%10===0; i++) num=num/10
+   return i
+ }
+if((curr.tex+'').length <= countZeros(prev.tex)){
+  prev.tex += curr.tex
+  prev.word += ' ' + curr.word
 }
+
+
+
+//      var countZeros = function(num) {
+//        for (var i = 0; num > 0 && num % 10 === 0; i++) num = num / 10
+//        return i
+//      }
+//      if ((curr.tex + '').length <= countZeros(prev.tex)) {
+//        prev.tex = ~~prev.tex + ~~curr.tex
+//        prev.tex = '' + prev.tex
+//        prev.word += ' ' + curr.word
+//      } else

@@ -7,6 +7,7 @@ var TexRoot = function() {
   this.cursor = 'data' //current input 
   this.modeStack = [dict.normal]
   this.translArr = [] //plays key role to rebuilding object(history)
+  this.arrPos = 0
   this.toTex = function() {
     return this.text
   }
@@ -25,7 +26,6 @@ var Editor = Backbone.Model.extend({
     this.set('texObj', new TexRoot())
 
     this.on('change:mode', function(data) {
-      console.log(data)
       if (data._previousAttributes.mode !== 'pause') {
         this.set('prevmode', data._previousAttributes.mode)
       }
@@ -107,27 +107,36 @@ var Editor = Backbone.Model.extend({
   })(),
 
   input: function(textInput) {
-
     if (textInput !== '#TIMEOUT#') this.idleTimer.reset()
 
-    console.log(textInput)
+    console.log('new text input: ', textInput)
+    console.time('search word')// time result for speech recog
+
     textInput = textInput.split(' ').map(
       function(a) {
         return fixInput(a);
       }).join(' ');
-    if (textInput[0] !== '#') {
-      this.set('currInput', textInput);
-    }
+
+      this.set('currInput', (/^#/.test(textInput)? '': textInput ));
+
     this.set('transcr', (this.get('transcr') ? this.get('transcr') + ' ' + textInput : textInput));
     var history = translate.input(this.attributes.texObj, textInput, this);
-    console.log(this.attributes);
     console.timeEnd('search word');
     this.set('tex', this.getTex());
     //would like some fix for multiple useless inputs
-    if(history){this.historyPush(this)} // history only if word had effect
+    if(history){
+      this.historyPush(this)
+    } // history only if word had effect
   },
   parseArr: function(arr) {
+    var to = new TexRoot()
+    this.set('texObj', to)
     translate.arrToObj(this.attributes.texObj, arr);
+    this.set('tex', this.getTex());
+  },
+  remove: function(amount) {
+    this.historyPush(this)
+    translate.remove(this.attributes.texObj, amount);
     this.set('tex', this.getTex());
   },
   getTex: function() {
@@ -145,16 +154,13 @@ var Editor = Backbone.Model.extend({
   load: function(name) {
     var name = (typeof name !== 'undefined') ? name : prompt('name')
     console.log('load');
-    var to = new TexRoot()
     var arr = JSON.parse(window.localStorage[name]);
-    var to = new TexRoot()
     arr = uncompressTranslArr(arr)
     this.parseArr(arr)
   },
 
   getArg: function() {
     var args = Array.prototype.slice.call(arguments);
-    console.log(args);
     while (args.length) {
       var arg = args.shift();
       if (!this.attributes[arg]) this.set(arg, prompt(arg));
@@ -186,19 +192,18 @@ var Editor = Backbone.Model.extend({
   resume: function() {
     speech.resumeInput();
     if (this.get('mode') === 'pause') {
-      console.log(this.get('prevmode'), 'mode');
       this.set('mode', this.get('prevmode'));
     }
   },
 
   noteMode: function() {
     this.set('mode', 'note');
-    console.log('math mode');
+    console.log('note mode');
   },
 
   mathMode: function() {
     this.set('mode', 'math');
-    console.log('note mode');
+    console.log('math mode');
   },
     fontSize: function(num) {
       MathJax.Hub.Queue(function() {
@@ -206,7 +211,7 @@ var Editor = Backbone.Model.extend({
         math.style.fontSize = num + 'px'
         MathJax.Hub.Queue(["Rerender", MathJax.Hub, math]);
       })
-      console.log('font size', num)
+      console.log('set font size :', num)
     }
 });
 
@@ -229,7 +234,7 @@ var MenuView = Backbone.View.extend({
 
   menuFunc: function(e) {
     var name = e.target.innerHTML;
-    console.log(name);
+    console.log('calling function: ', name);
     this.model[name]();
     e.preventDefault();
   },
@@ -358,7 +363,6 @@ $(function() {
   // this one shouldnt be there
   $(window).on('keydown', function(ev) {
     if (ev.keyCode === 27) {
-      console.log('break, esc key pressed')
       ed.input('#BREAK#')
     }
   })

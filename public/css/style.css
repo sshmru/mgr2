@@ -7,6 +7,10 @@ body{
   font-size: 2em;
 }
 
+#editor{
+  margin:10%;
+}
+
 #menuBox{
   position:fixed;
   width:100%;
@@ -66,4 +70,8 @@ body{
    95%{
     background:white;
   }
+}
+
+.selected{
+  background:green;
 }

@@ -6,7 +6,7 @@ var translate = (function(dict) {
     //    var modeStack = context.modeStack.slice(0);
 
     var result = prioritySearch(word, file) ||
-      findInMode(word, modeStack[modeStack.length - 1], modeStack) ||
+      findInMode(word, modeStack[modeStack.length - 1], modeStack, file.modeStack) ||
       finalSearch(word, file)
 
     return new WordItem(word, result.type, result)
@@ -14,6 +14,7 @@ var translate = (function(dict) {
   };
 
   var findInMode = function(word, mode, modeStack) {
+    console.log(word, mode, modeStack)
     for (var item in mode) {
       var words = mode[item].words;
       if (words && words.indexOf(word) !== -1) {
@@ -26,7 +27,7 @@ var translate = (function(dict) {
         return mode[item]
       }
     }
-    if (modeStack.length > 1) {
+    if (modeStack && modeStack.length > 1) {
       modeStack.pop();
       return findInMode(word, modeStack[modeStack.length - 1], modeStack);
     } else {
@@ -78,7 +79,7 @@ var translate = (function(dict) {
         type: 'none',
         tex: ''
       }
-      console.log('PAUSE DETECTED')
+      console.log('PAUSE, no inputs accepted')
     }
 
     if (!isNaN(word)) return {
@@ -86,8 +87,12 @@ var translate = (function(dict) {
       tex: word
     }
 
+    var result = findInMode(word, dict.priority)
+    if (result) {
+      return result
+    }
+
     if (dict.endBlock.indexOf(word) !== -1) {
-      console.log('END BLOCK HIT')
       return {
         type: 'end',
         tex: ''
@@ -98,7 +103,7 @@ var translate = (function(dict) {
   };
 
   function InputEnd() {
-    this.word = ''
+    this.word = '#END#'
     this.tex = ''
     this.type = 'InputEnd'
     this.item = ''
@@ -116,22 +121,20 @@ var translate = (function(dict) {
     if (type === 'text') {
       this.tex = word
     }
-    if (type === 'func') {
-      this.func = obj.func
-      this.args = obj.args
-    }
+    this.func = obj.func || undefined
+    this.args = obj.args || undefined
   }
   var determineMode = function(word, file) {
-    var found = findInMode(word, dict.normal, [])
+    var found = findInMode(word, dict.normal)
     if (found) {
-      file.set('mode', found.type)
+      file.set('mode', found.name)
       return {
         mode: new WordItem(word, 'mode', found)
       }
     }
 
     for (var mode in dict.modes) {
-      var found = findInMode(word, dict.modes[mode], [])
+      var found = findInMode(word, dict.modes[mode])
       if (found) {
         file.set('mode', mode)
         return {
@@ -151,8 +154,8 @@ var translate = (function(dict) {
       current.expect.splice(current.expect.indexOf(current.cursor), 1);
     }
 
-    if (elem.item && elem.item.func) {
-      console.log('FUNCTION DETECTED')
+    if (elem.item && elem.item.func && elem.type !== 'modifier') {
+      console.log('in-dict function running ', elem)
       elem.item.func()
         //if args, create temp obj and wait for args, if complete, call function
     }
@@ -184,6 +187,7 @@ var translate = (function(dict) {
     }
 
     if (elem.type === 'modifier') {
+      console.log(elem)
       var result = elem
       modeStack.push(elem.item);
       //fit at cursor, create new obj if needed
@@ -192,7 +196,6 @@ var translate = (function(dict) {
     if (['number', 'character', 'operator', 'letter', 'text'].indexOf(elem.type) !== -1) {
       var result = elem
       current[current.cursor].push(result);
-      console.log(elem.item)
       if (elem.item) {
         modeStack.push(elem.item);
       }
@@ -274,7 +277,6 @@ var translate = (function(dict) {
     if (elem.type === 'none') {
       //dont apply at all unless mode set to 'note all
     }
-
   };
 
 
@@ -292,7 +294,7 @@ var translate = (function(dict) {
           return (typeof b === 'string') ? a + b : a + extractObj(b)
         }, '')
       } else {
-        console.log('error, object is not an array')
+        console.log('warning: expected to be an array ', arr)
         return ''
       }
 
@@ -307,7 +309,7 @@ var translate = (function(dict) {
           if (a === '##') {
             return extractArr(obj.data)
           } else {
-            return (obj[a].length > 0) ? extractArr(obj[a]) : a
+            return (obj[a] && obj[a].length > 0) ? extractArr(obj[a]) : a
           }
         }
         return a;
@@ -344,21 +346,32 @@ var translate = (function(dict) {
 
   }
 
-  var applyElem = function(curr, arr) {
+  var applyElem = function(curr, arr, texObj) {
     var prev = arr[arr.length - 1]
+    if (prev && ['override', 'modifier'].indexOf(prev.type) !== -1) {
+      texObj.modeStack.pop()
+    }
+
     if (prev && prev.type === 'letter' && curr.type === 'number') {
       curr.tex = '_{ ' + curr.tex + ' }'
       curr.type = 'operator' // change this later on 
       arr.push(curr);
     } else if (prev && prev.type === 'number' && curr.type === 'number') {
-      //make fractions from 0 34 -> 0.34
+      //multiword numbers(90 3 -> 93)
       if (prev.tex === '0' || prev.tex === 0) {
+        //make fractions from 0 34 -> 0.34
         prev.tex += '.' + curr.tex
         prev.word += ' ' + curr.wrod
       } else {
         prev.tex += curr.tex
         prev.word += ' ' + curr.wrod
       }
+    } else if (prev && prev.type === 'modifier' && curr.type === 'letter') {
+      console.log(prev, curr)
+      if (prev.func) {
+        prev.func(curr)
+      }
+      arr.push(curr);
     } else if (prev && curr.type === 'override') {
       // lesser equal, '<' -> \\leq
       prev.tex = curr.tex
@@ -368,16 +381,33 @@ var translate = (function(dict) {
     }
   }
 
-  var arrToObj = function(texObj, arr) {
+  var remove = function(texObj, amount) {
+    var amount = amount || 1
+      //      texObj.translArr.length - 1
+    if (texObj.current[texObj.current.cursor].length > 0) {
+      while (amount--) {
+        texObj.current[texObj.current.cursor].pop()
+      }
+    } else {
+      texObj.current = texObj.current.parent
+      if (texObj.current[texObj.current.cursor].length > 0) {
+        while (amount--) {
+          texObj.current[texObj.current.cursor].pop()
+        }
+      }
+    }
+    var tex = extractTex(texObj)
+    texObj['text'] = tex
+  }
 
-    console.log(texObj, arr)
+  var arrToObj = function(texObj, arr) {
+    console.log('parsing array input: ', texObj, arr)
     var i = 0
     var len = arr.length
     while (i < len) {
       texObj.translArr.push(arr[i])
       fitWord(arr[i++], texObj)
     }
-
     var tex = extractTex(texObj)
     texObj['text'] = tex
   }
@@ -393,10 +423,11 @@ var translate = (function(dict) {
       })
     }
   }
+
   var applyArgs = function(arg, file) {
     func = file.get('func')
     if (func.length === 1) {
-      console.log('running func', arg)
+      console.log('running command func', arg)
       func.call(file, arg)
       file.set({
         'mode': file.get('prevmode'),
@@ -404,7 +435,6 @@ var translate = (function(dict) {
         'args': []
       })
     } else {
-      console.log('AAAAAAAAAAAAa')
       file.attributes.args.pop()
       file.set({
         'func': file.get('func').bind(file, arg),
@@ -416,7 +446,7 @@ var translate = (function(dict) {
     var history = false
     var translArr = texObj.translArr
     var newInput = textInput.trim().split(/\s+/);
-    // could ade mode related things to PAUSE, BREAK, TIMEOUT, FN in there
+
     newInput.forEach(function(word) {
       if (file.get('mode') === 'func') {
         applyArgs(word, file)
@@ -424,10 +454,10 @@ var translate = (function(dict) {
         var res = determineMode(word, file)
         if (res) {
           history = true
-          applyElem(res.mode, translArr)
+          applyElem(res.mode, translArr, texObj)
           fitWord(translArr[translArr.length - 1], texObj);
           if (res.found) {
-            applyElem(res.found, translArr)
+            applyElem(res.found, translArr, texObj)
             fitWord(translArr[translArr.length - 1], texObj);
           }
         }
@@ -438,7 +468,7 @@ var translate = (function(dict) {
         } else {
           history = true
           var prevLength = translArr.length
-          applyElem(elem, translArr)
+          applyElem(elem, translArr, texObj)
             //fit only if array length increased
           if (prevLength !== translArr.length) {
             fitWord(translArr[translArr.length - 1], texObj);
@@ -450,19 +480,17 @@ var translate = (function(dict) {
     //mark input pauses
     translArr.push(new InputEnd());
 
-    console.log('translateObj: ');
     console.log(texObj);
     //    console.log('translateArr');
     //    console.log(file.translArr);
     var tex = extractTex(texObj)
-    console.log('result text: ')
-    console.log(tex)
     texObj['text'] = tex
     return history
   };
 
   return {
     input: translate,
-    arrToObj: arrToObj
+    arrToObj: arrToObj,
+    remove: remove,
   }
 })(dict_PL);

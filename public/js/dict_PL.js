@@ -6,31 +6,31 @@ var dict_PL = (function() {
     logic: {
       tex: '$$ { ## } $$',
       type: 'mode',
-      name:'logic',
+      name: 'logic',
       words: ['logika'],
     },
     arithmetic: {
       tex: '$$ { ## } $$',
       type: 'mode',
-      name:'arithmetic',
+      name: 'arithmetic',
       words: ['arytmatyka'],
     },
     algebra: {
       tex: '$$ { ## } $$',
       type: 'mode',
-      name:'algebra',
+      name: 'algebra',
       words: ['algebra'],
     },
     alghoritms: {
       tex: '$$ { ## } $$',
-      name:'alghoritms',
+      name: 'alghoritms',
       type: 'mode',
       words: ['algorytmy'],
     },
     sets: {
       tex: '$$ { ## } $$',
       type: 'mode',
-      name:'sets',
+      name: 'sets',
       words: ['zbiory', 'zbiorów'],
       sum: {
         tex: '{ { #first }  \\cup { #second } }',
@@ -46,7 +46,7 @@ var dict_PL = (function() {
           words: ['i', 'oraz', 'drugi'],
         },
         banned: {
-          tex:'',
+          tex: '',
           words: ['zbiorów'],
         },
       },
@@ -80,7 +80,11 @@ var dict_PL = (function() {
       equal: {
         tex: '=',
         type: 'character',
-        words: ['=', 'równa', 'równe']
+        words: ['=', 'równa', 'równe'],
+        banned: {
+          tex: '',
+          words: ['się']
+        },
       },
 
       not: {
@@ -106,7 +110,7 @@ var dict_PL = (function() {
       },
 
       lesser: {
-        tex: '>',
+        tex: '<',
         type: 'character',
         words: ['<', 'mniejsze'],
         equal: {
@@ -243,7 +247,7 @@ var dict_PL = (function() {
     },
 
     text: {
-      tex: '$$ \\text{ ## } $$',
+      tex: '$$ ## $$',
       type: 'mode',
       name: 'text',
       words: ['tekstowy', 'tekst'],
@@ -255,7 +259,7 @@ var dict_PL = (function() {
       },
 
       newLine: {
-        tex: '\\text{ ## } ',
+        tex: '$$ ## $$',
         type: 'block',
         words: ['enter', 'linia', 'linii']
       },
@@ -335,6 +339,12 @@ var dict_PL = (function() {
       words: ['dalej', 'przód', 'redo'],
     },
 
+    remove: {
+      func: 'remove',
+      args: [],
+      words: ['backspace', 'delete', 'usuń', 'kasuj'],
+    },
+
     menu: {
       func: 'showMenu',
       args: [],
@@ -360,7 +370,7 @@ var dict_PL = (function() {
     'tau': [],
     'beta': [],
     'vartheta': [],
-    'pi': [],
+    'pi': ['pi'],
     'upsilon': [],
     'gamma': [],
     'iota': [],
@@ -396,6 +406,26 @@ var dict_PL = (function() {
     'Pi': [],
     'Phi': []
   };
+
+  dict.priority = {
+    upcase: {
+      tex: '',
+      type: 'modifier',
+      func: function(item){
+        item.tex = item.tex.replace(/\w/, item.tex[item.tex.search(/\w/)].toUpperCase() )
+      },
+      words: ['shift', 'wielkie', 'duże', 'wielka']
+
+    },
+    lowcaese: {
+      tex: '',
+      type: 'modifier',
+      func: function(item){
+        item.tex = item.tex.replace(/\w/, item.tex[item.tex.search(/\w/)].toLowerCase() )
+      },
+      words: ['małe', 'mała']
+    }
+  }
 
 
   function addPaths(obj, str) {

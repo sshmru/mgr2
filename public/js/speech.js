@@ -29,7 +29,7 @@ var speech = (function() {
     if (!recog.running) {
       recog.start();
     }
-    console.log('RESUMED');
+//    console.log('RESUMED');
   };
 
   speech.init = function(setdict, setfile) {
@@ -63,7 +63,6 @@ var speech = (function() {
       };
       recog.onresult = function(ev) {
         console.timeEnd('speech input')
-        console.time('search word')// time result for speech recog
         speech.transcribe(ev);
 //        console.log('received input');
       };

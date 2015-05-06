@@ -34,6 +34,7 @@ var fixInput = function(word) {
     80: ['osiemdziesiąty', 'osiemdziesiątej', 'oiemdziesiąt', 'osiemdziesiątego'],
     90: ['dziewięćdziesiąty', 'dziewięćdziesiątej', 'dziewięćdziesiąt', 'dziewięćdziesiątego'],
     100: ['setny', 'setnej', 'sto', 'setnego'],
+    1000: ['tysiąc'],
     '2 pi r': ['o2pl'],
     'pi r kwadrat': ['prawda2'],
     'ułamek': ['zamek'],
