@@ -94,10 +94,10 @@ var Editor = Backbone.Model.extend({
     this.set('tex', this.getTex());
   },
   remove: function(amount) {
-    this.historyPush()
     amount = amount || 1
     this.attributes.texObj.remove(amount);
     this.set('tex', this.getTex());
+    this.historyPush()
   },
   getTex: function() {
     return this.attributes.texObj.toTex()

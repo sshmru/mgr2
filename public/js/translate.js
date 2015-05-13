@@ -469,12 +469,12 @@ var TexObj = (function(dict) {
     func = file.get('func')
     if (func.length === 1) {
       console.log('running command func', arg)
-      func.call(file, arg)
       file.set({
         'mode': file.get('prevmode'),
         'func': null,
         'args': []
       })
+      func.call(file, arg)
     } else {
       file.attributes.args.pop()
       file.set({
@@ -544,7 +544,8 @@ var TexObj = (function(dict) {
       //      texObj.translArr.length - 1
     var currArr = texObj.current[texObj.current.cursor]
     if (currArr.length > 0) {
-      currArr.pop()
+      var removed = currArr.pop()
+      this.translArr.splice(this.translArr.indexOf(removed), 1)
     } else {
       if (texObj.current.parent) {
         texObj.current = texObj.current.parent
