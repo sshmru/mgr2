@@ -1,5 +1,47 @@
-var translate = (function(dict) {
+var HistoryObj = (function() {
+  var HistoryObj = function(data, serialize, deserialize) {
+    this.list = []
+    this.position = -1
+    this.serialize = serialize
+    this.deserialize = deserialize
+    this.push(data)
+  }
+  HistoryObj.prototype.push = function(data) {
+    this.position++
+    if (this.serialize) {
+      var data = this.serialize(data)
+    }
+    this.list.push(data)
+    this.list.length = this.position + 1
+    console.log('push', this)
+    return this
+  }
+  HistoryObj.prototype.back = function() {
+    if (this.position > 0) {
+      this.position--
+    }
+    var obj = this.list[this.position]
+    if (this.deserialize) {
+      var obj = this.deserialize(obj)
+    }
+    console.log('back', this)
+    return obj
+  }
+  HistoryObj.prototype.forward = function() {
+    if (this.position < this.list.length - 1) {
+      this.position++
+    }
+    var obj = this.list[this.position]
+    if (this.deserialize) {
+      var obj = this.deserialize(obj)
+    }
+    console.log('forward', this)
+    return obj
+  }
+  return HistoryObj
+})()
 
+var TexObj = (function(dict) {
 
   var dictCheck = function(word, texObj, file) {
     var modeStack = texObj.modeStack.slice(0);
@@ -131,6 +173,7 @@ var translate = (function(dict) {
     this.func = obj.func || undefined
     this.args = obj.args || undefined
   }
+
   var determineMode = function(word, file) {
     var found = findInMode(word, dict.normal)
     if (found) {
@@ -360,7 +403,6 @@ var translate = (function(dict) {
     atCursor.pop();
 
     return result;
-
   }
 
   var applyElem = function(curr, arr, texObj) {
@@ -398,28 +440,8 @@ var translate = (function(dict) {
     }
   }
 
-  var remove = function(texObj, amount, file) {
-    //      texObj.translArr.length - 1
-    var currArr = texObj.current[texObj.current.cursor]
-    if (currArr.length > 0) {
-      currArr.pop()
-    } else {
-      if (texObj.current.parent) {
-        texObj.current = texObj.current.parent
-        amount++
-      } else {
-        texObj.current = texObj
-      }
-    }
-    if (--amount) {
-      remove(texObj, amount, file)
-    } else {
-      var tex = extractTex(texObj, file)
-      texObj['text'] = tex
-    }
-  }
-
-  var arrToObj = function(texObj, arr, file) {
+  var arrToObj = function(texObj, arr) {
+    var file = texObj.file
     console.log('parsing array input: ', texObj, arr)
     var i = 0
     var len = arr.length
@@ -461,7 +483,88 @@ var translate = (function(dict) {
     }
   }
 
-  var translate = function(texObj, textInput, file) {
+  var compressTranslArr = function(arr) {
+    var cloned = []
+
+    function cloneObj(obj) {
+      var cloned = {}
+      if (obj && obj.item && obj.item.path) {
+        cloned.item = obj.item.path
+      }
+      for (var o in obj) {
+        if (obj.hasOwnProperty(o)) {
+          if (obj[o] && typeof obj[o] === 'object' || o === 'cursor') {
+            //
+          } else {
+            cloned[o] = obj[o]
+          }
+        }
+      }
+      return cloned
+    }
+    arr.forEach(function(a) {
+      cloned.push(cloneObj(a))
+    })
+    return cloned
+  }
+
+  var uncompressTranslArr = function(arr) {
+    function getFrom(obj, str) {
+      str = str.match(/\w+/g)
+      while (str.length) {
+        obj = obj[str.shift()]
+      }
+      return obj
+    }
+    return arr.map(function(a) {
+      if (a.item) a.item = getFrom(dict, a.item)
+      return a
+    })
+  }
+
+  var TexObj = function(file, arr) {
+    this.mode = dict.normal
+    this.tex = '##'
+    this.current = this
+    this.data = []
+    this.cursor = 'data' //current input 
+    this.modeStack = [dict.normal]
+    this.translArr = [] //plays key role to rebuilding object(history)
+    this.arrPos = 0
+    this.file = file
+    if (arr) {
+      console.log()
+      arrToObj(this, arr)
+    }
+  }
+
+  TexObj.prototype.remove = function(amount) {
+    var file = this.file
+    var texObj = this
+      //      texObj.translArr.length - 1
+    var currArr = texObj.current[texObj.current.cursor]
+    if (currArr.length > 0) {
+      currArr.pop()
+    } else {
+      if (texObj.current.parent) {
+        texObj.current = texObj.current.parent
+        amount++
+      } else {
+        texObj.current = texObj
+      }
+    }
+    if (--amount) {
+      this.remove(texObj, amount, file)
+    } else {
+      var tex = extractTex(texObj, file)
+      texObj['text'] = tex
+    }
+  }
+
+  TexObj.prototype.input = function(textInput) {
+    var file = this.file
+    var texObj = this
+
     var history = false
     var translArr = texObj.translArr
     var newInput = textInput.trim().split(/\s+/);
@@ -505,11 +608,19 @@ var translate = (function(dict) {
     var tex = extractTex(texObj, file)
     texObj['text'] = tex
     return history
-  };
-
-  return {
-    input: translate,
-    arrToObj: arrToObj,
-    remove: remove,
   }
+
+  TexObj.prototype.toTex = function() {
+    return this.text;
+  }
+
+  TexObj.prototype.toJSON = function() {
+    return compressTranslArr(this.translArr);
+  }
+
+  TexObj.prototype.fromJSON = function(arr) {
+    return uncompressTranslArr(arr)
+  }
+
+  return TexObj
 })(dict_PL);

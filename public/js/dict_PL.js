@@ -260,7 +260,7 @@ var dict_PL = (function() {
         newline: {
           tex: '\\\\ ',
           type: 'character',
-          words: ['oraz', 'nizej']
+          words: ['oraz', 'niżej']
         },
         when: {
           tex: ' & \\text{dla } ',
@@ -453,7 +453,8 @@ var dict_PL = (function() {
       if (obj.hasOwnProperty(item) &&
         typeof obj[item] === 'object' &&
         obj[item] !== null &&
-        obj[item].constructor === {}.constructor) {
+        obj[item].constructor === {}.constructor &&
+        !obj.path) {
         addPaths(obj[item], str + ' ' + item)
         obj[item].path = str + ' ' + item
       }

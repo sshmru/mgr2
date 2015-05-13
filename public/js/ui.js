@@ -32,3 +32,33 @@ if((curr.tex+'').length <= countZeros(prev.tex)){
 //        prev.tex = '' + prev.tex
 //        prev.word += ' ' + curr.word
 //      } else
+
+var HistoryObj =  (function(){
+  var HistoryObj = function(data, serialize, deserialize){
+    this.list = []
+    this.position = -1
+    this.serialize = serialize
+    this.deserialize = deserialize
+    this.push(data)
+  }
+  HistoryObj.prototype.push = function(data){
+    this.position ++
+    data = this.serialize(data)
+    this.list.push(data)
+    this.list.length = this.position + 1
+  }
+  HistoryObj.prototype.back = function(){
+    if(this.position > 0){
+      this.position  --
+    }
+    return this.deserialize(this.list[this.position])
+  }
+  HistoryObj.prototype.forward = function(){
+    if(this.position < this.list.length -1){
+      this.position ++
+    }
+    return this.deserialize(this.list[this.position])
+  }
+  return HistoryObj
+})()
+ 

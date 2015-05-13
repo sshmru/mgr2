@@ -1,17 +1,4 @@
 var dict = dict_PL //jesus this is awful, need 2 remove it asap
-var TexRoot = function() {
-  this.mode = dict.normal
-  this.tex = '##'
-  this.current = this
-  this.data = []
-  this.cursor = 'data' //current input 
-  this.modeStack = [dict.normal]
-  this.translArr = [] //plays key role to rebuilding object(history)
-  this.arrPos = 0
-  this.toTex = function() {
-    return this.text
-  }
-}
 
 var Editor = Backbone.Model.extend({
   defaults: {
@@ -23,7 +10,10 @@ var Editor = Backbone.Model.extend({
   },
   initialize: function() {
     var self = this
-    this.set('texObj', new TexRoot())
+    this.set('texObj', new TexObj(this))
+
+    this.history = new HistoryObj(this.attributes.texObj.translArr,
+                                  Array.prototype.slice.bind(this.attributes.texObj.translArr))
 
     this.on('change:mode', function(data) {
       if (data._previousAttributes.mode !== 'pause') {
@@ -31,49 +21,6 @@ var Editor = Backbone.Model.extend({
       }
     })
 
-    var history = [];
-
-    var position = -1;
-
-    //history coudl have been more efficient by just slicing proper part of array to apply
-    this.historyPush = function(data) {
-      var json = this.toJSON()
-      history[++position] = {
-        editor: {
-          transcr: json.transcr,
-          mode: json.mode
-        },
-        arr: data.attributes.texObj.translArr.slice(0)
-      };
-      history.length = position + 1;
-      console.log('history PUSH', history, position);
-    };
-
-    this.back = function() {
-      console.log('history BACK', history, position);
-      if (position >= 0) {
-        var obj = history[--position]
-        this.set(obj.editor);
-        var to = new TexRoot()
-        this.set('texObj', to)
-
-        this.parseArr(obj.arr)
-      }
-    };
-
-    this.forward = function() {
-      console.log('history FORWARD', history, position);
-      if (position < history.length - 1) {
-        var obj = history[++position]
-        this.set(obj.editor);
-        var to = new TexRoot()
-        this.set('texObj', to)
-
-        this.parseArr(obj.arr);
-      }
-    };
-
-    this.historyPush(this);
 
     this.idleTimer.setCB(function() {
       self.input('#TIMEOUT#')
@@ -105,39 +52,51 @@ var Editor = Backbone.Model.extend({
     }
     return idleTimer
   })(),
+  back: function() {
+    var arr = this.history.back();
+    this.parseArr(arr)
+  },
+
+  forward: function() {
+    var arr = this.history.forward();
+    this.parseArr(arr);
+  },
+
+  historyPush: function() {
+   this.history.push(this.attributes.texObj.translArr);
+  },
 
   input: function(textInput) {
     if (textInput !== '#TIMEOUT#') this.idleTimer.reset()
 
     console.log('new text input: ', textInput)
-    console.time('search word')// time result for speech recog
+    console.time('search word') // time result for speech recog
 
     textInput = textInput.split(' ').map(
       function(a) {
         return fixInput(a);
       }).join(' ');
 
-      this.set('currInput', (/^#/.test(textInput)? '': textInput ));
+    this.set('currInput', (/^#/.test(textInput) ? '' : textInput));
 
     this.set('transcr', (this.get('transcr') ? this.get('transcr') + ' ' + textInput : textInput));
-    var history = translate.input(this.attributes.texObj, textInput, this);
+    var history = this.attributes.texObj.input(textInput);
     console.timeEnd('search word');
     this.set('tex', this.getTex());
     //would like some fix for multiple useless inputs
-    if(history){
-      this.historyPush(this)
+    if (history) {
+      this.historyPush()
     } // history only if word had effect
   },
   parseArr: function(arr) {
-    var to = new TexRoot()
+    var to = new TexObj(this, arr)
     this.set('texObj', to)
-    translate.arrToObj(this.attributes.texObj, arr, this);
     this.set('tex', this.getTex());
   },
   remove: function(amount) {
-    this.historyPush(this)
+    this.historyPush()
     amount = amount || 1
-    translate.remove(this.attributes.texObj, amount, this);
+    this.attributes.texObj.remove(amount);
     this.set('tex', this.getTex());
   },
   getTex: function() {
@@ -148,7 +107,8 @@ var Editor = Backbone.Model.extend({
     var self = this;
     (typeof name !== 'undefined') ? this.set('name', name): this.set('name', prompt('name'));
     console.log('save');
-    var str = JSON.stringify(compressTranslArr(this.attributes.texObj.translArr));
+    var obj = this.attributes.texObj.toJSON();
+    var str = JSON.stringify(obj);
     window.localStorage[self.attributes.name] = str
   },
 
@@ -156,8 +116,7 @@ var Editor = Backbone.Model.extend({
     var name = (typeof name !== 'undefined') ? name : prompt('name')
     console.log('load');
     var arr = JSON.parse(window.localStorage[name]);
-    arr = uncompressTranslArr(arr)
-    this.parseArr(arr)
+    this.parseArr(TexObj.prototype.fromJSON(arr))
   },
 
   getArg: function() {
@@ -207,14 +166,14 @@ var Editor = Backbone.Model.extend({
     this.set('mode', 'math');
     console.log('math mode');
   },
-    fontSize: function(num) {
-      MathJax.Hub.Queue(function() {
-        var math = document.getElementById("editor");
-        math.style.fontSize = num + 'px'
-        MathJax.Hub.Queue(["Rerender", MathJax.Hub, math]);
-      })
-      console.log('set font size :', num)
-    }
+  fontSize: function(num) {
+    MathJax.Hub.Queue(function() {
+      var math = document.getElementById("editor");
+      math.style.fontSize = num + 'px'
+      MathJax.Hub.Queue(["Rerender", MathJax.Hub, math]);
+    })
+    console.log('set font size :', num)
+  }
 });
 
 
@@ -320,44 +279,6 @@ var currIn = new InputLine({
 });
 
 
-function compressTranslArr(arr) {
-  var cloned = []
-
-  function cloneObj(obj) {
-    var cloned = {}
-    if (obj && obj.item && obj.item.path) {
-      cloned.item = obj.item.path
-    }
-    for (var o in obj) {
-      if (obj.hasOwnProperty(o)) {
-        if (obj[o] && typeof obj[o] === 'object' || o === 'cursor') {
-          //
-        } else {
-          cloned[o] = obj[o]
-        }
-      }
-    }
-    return cloned
-  }
-  arr.forEach(function(a) {
-    cloned.push(cloneObj(a))
-  })
-  return cloned
-}
-
-function uncompressTranslArr(arr) {
-  function getFrom(obj, str) {
-    str = str.match(/\w+/g)
-    while (str.length) {
-      obj = obj[str.shift()]
-    }
-    return obj
-  }
-  return arr.map(function(a) {
-    if (a.item) a.item = getFrom(dict, a.item)
-    return a
-  })
-}
 
 
 $(function() {
